@@ -142,6 +142,7 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 Copyright (c) 2025 Nikhil Saxena. All rights reserved.
 
+
 **PERMISSIONS**
 
 Permission is hereby granted to any person obtaining a copy of this software 
