@@ -1,4 +1,4 @@
-Meta Clash is a fast, theme-based card battle game. Type any universe — anime, manga, games — and instantly create a multiplayer lobby with cards, stats, bots, and real-time battles.
+**Meta Clash** is a fast, theme-based card battle game. Type any universe — anime, manga, games — and instantly create a multiplayer lobby with cards, stats, bots, and real-time battles.
 
 ---
 
