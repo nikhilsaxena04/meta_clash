@@ -1,13 +1,15 @@
-# META CLASH — README.md
+![WhatsApp Image 2025-12-02 at 4 25 37 AM](https://github.com/user-attachments/assets/6ff5a6da-f3a5-4a95-9c8d-84c0fff660cb)# META CLASH — README.md
 
 Meta Clash is a fast, theme-based card battle game. Type any universe — anime, manga, games — and instantly create a multiplayer lobby with cards, stats, bots, and real-time battles.
 
 ---
 
-## 🖼️ Screenshots
+## 🎮 Look & Feel
 
+![Lobby_Screen](https://github.com/user-attachments/assets/d423548d-0a0a-41e1-ab08-e9fc8236dab0)
 ### Lobby Creation
 
+![Battle_Arena](https://github.com/user-attachments/assets/e7d32324-02a9-4d53-b38b-6787708d61cb)
 ### Battle Screen
 
 ---
