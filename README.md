@@ -15,7 +15,7 @@ This project follows a decoupled architecture:
   - `internal/ws/`: WebSocket hub and concurrent client messaging.
   - `internal/lobby/`: Real-time session and player matching.
   - `internal/config/`: Environment and configuration loading.
-- **`frontend/`**: The client-side UI (Next.js, React, TailwindCSS).
+- **`Root Directory (./)`**: The client-side UI (Next.js, React, TailwindCSS) lives here.
   - Handles rendering, local state prediction, and WebSocket communication.
 
 ---
@@ -62,3 +62,9 @@ You must run the backend and frontend simultaneously.
 ```bash
 cd backend
 air
+```
+
+**2. Start the Next.js Frontend:**
+```bash
+npm run dev
+```
