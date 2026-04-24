@@ -1,46 +1,54 @@
 // pages/game.js - FINAL ALIGNMENT FIX
 import { useEffect, useState, useRef } from 'react';
-import io from 'socket.io-client';
+import wsClient from '../lib/ws';
 import Card from '../components/Card';
 import { motion, AnimatePresence } from 'framer-motion';
-
-let socket;
 
 export default function Game() {
     const [lobby, setLobby] = useState(null);
     const [logs, setLogs] = useState([]);
     const [lastRound, setLastRound] = useState(null);
     const [name, setName] = useState(''); 
-    const mySocket = useRef(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
             setName(localStorage.getItem('lastPlayerName') || 'Player');
         }
 
-        socket = io();
-        socket.on('connect', () => { mySocket.current = socket.id; });
-        socket.on('lobbyUpdate', l => { setLobby(l); });
-        socket.on('gameStarted', l => { setLobby(l); });
-        socket.on('roundResult', data => { setLastRound(data); setLobby(data.lobby); });
-        
-        socket.on('connect_error', e => {
-            console.error("Socket Error:", e);
-        });
+        wsClient.connect();
+
+        const onLobbyUpdate = l => { setLobby(l); };
+        const onGameStarted = l => { setLobby(l); };
+        const onRoundResult = data => { setLastRound(data); setLobby(data.lobby); };
+        const onConnectError = e => { console.error("Socket Error:", e); };
+
+        wsClient.on('lobbyUpdate', onLobbyUpdate);
+        wsClient.on('gameStarted', onGameStarted);
+        wsClient.on('roundResult', onRoundResult);
+        wsClient.on('connect_error', onConnectError);
 
         if (typeof window !== 'undefined') {
             const storedLobbyId = localStorage.getItem('lastLobbyId');
             const storedName = localStorage.getItem('lastPlayerName') || 'Player';
             
             if (storedLobbyId) {
-                socket.emit('joinLobby', { lobbyId: storedLobbyId, name: storedName }, res => {
-                    if (res.ok) setLobby(res.lobby);
-                    else { localStorage.removeItem('lastLobbyId'); window.location.href = '/'; }
-                });
+                // To avoid emit firing before connect, emit manages it internally, but setTimeout is safer 
+                // since we just called connect() linearly.
+                setTimeout(() => {
+                    wsClient.emit('joinLobby', { lobbyId: storedLobbyId, name: storedName }, res => {
+                        if (res.ok) setLobby(res.lobby);
+                        else { localStorage.removeItem('lastLobbyId'); window.location.href = '/'; }
+                    });
+                }, 100);
             } else { window.location.href = '/'; }
         }
         
-        return () => socket?.disconnect();
+        return () => {
+            wsClient.off('lobbyUpdate', onLobbyUpdate);
+            wsClient.off('gameStarted', onGameStarted);
+            wsClient.off('roundResult', onRoundResult);
+            wsClient.off('connect_error', onConnectError);
+        };
     }, []);
 
     const chooseAttr = (attr) => {
@@ -48,7 +56,7 @@ export default function Game() {
         const me = lobby.players.find(p => p.name === name);
         if (!me) return; 
         
-        socket.emit('chooseAttribute', { lobbyId: lobby.id, playerId: me.id, attr }, res => {
+        wsClient.emit('chooseAttribute', { lobbyId: lobby.id, playerId: me.id, attr }, res => {
             if (!res.ok) alert("Error: " + res.err);
         });
     };

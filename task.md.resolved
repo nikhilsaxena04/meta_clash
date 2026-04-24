@@ -1,20 +1,20 @@
 # Meta Clash — Go Backend Migration
 
 ## Backend Setup
-- [ ] Create directory structure, `go.mod`, install deps
-- [ ] Implement `internal/config/config.go`
-- [ ] Implement `internal/models/` (card, player, lobby, user)
+- [x] Create directory structure, `go.mod`, install deps
+- [x] Implement `internal/config/config.go`
+- [x] Implement `internal/models/` (card, player, lobby, user)
 
 ## Game Logic
-- [ ] Implement curated packs: `internal/game/packs/onepiece.go`
-- [ ] Implement curated packs: `internal/game/packs/pokemon.go`
-- [ ] Implement `internal/game/cards.go` (Jikan + fallback + deterministic stats)
-- [ ] Implement `internal/game/engine.go` (deal, resolve, winner)
-- [ ] Implement `internal/game/bot.go` (smart attribute selection)
+- [x] Implement curated packs: `internal/game/packs/onepiece.go`
+- [x] Implement curated packs: `internal/game/packs/pokemon.go`
+- [x] Implement `internal/game/cards.go` (Jikan + fallback + deterministic stats)
+- [x] Implement `internal/game/engine.go` (deal, resolve, winner)
+- [x] Implement `internal/game/bot.go` (smart attribute selection)
 
 ## Lobby Management
-- [ ] Implement `internal/lobby/store.go` (in-memory store interface)
-- [ ] Implement `internal/lobby/manager.go` (thread-safe CRUD)
+- [x] Implement `internal/lobby/store.go` (in-memory store interface)
+- [x] Implement `internal/lobby/manager.go` (thread-safe CRUD)
 
 ## WebSocket Layer
 - [ ] Implement `internal/ws/hub.go`
@@ -29,7 +29,7 @@
 - [ ] Implement `internal/auth/middleware.go`
 
 ## Server Entry Point
-- [ ] Implement `cmd/server/main.go` (routes, graceful shutdown)
+- [x] Implement `cmd/server/main.go` (routes, graceful shutdown)
 
 ## Middleware
 - [ ] `internal/middleware/logging.go`

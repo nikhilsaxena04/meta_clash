@@ -1,41 +1,44 @@
 // pages/index.js - PREMIUM GLASS LOBBY
 import { useEffect, useRef, useState } from 'react';
-import io from 'socket.io-client';
+import wsClient from '../lib/ws';
 import { motion } from 'framer-motion';
-
-let socket;
 
 export default function Home() {
   const [lobby, setLobby] = useState(null);
   const [name, setName] = useState('');
   const [theme, setTheme] = useState('One Piece');
-  const mySocket = useRef(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setName(localStorage.getItem('lastPlayerName') || 'Player');
       setTheme(localStorage.getItem('lastTheme') || 'One Piece');
-      fetch('/api/socket'); 
     }
 
-    socket = io();
-    socket.on('connect', () => { mySocket.current = socket.id; });
-    socket.on('lobbyUpdate', l => { setLobby(l); });
-    socket.on('gameStarted', l => {
+    wsClient.connect();
+    
+    const onLobbyUpdate = (l) => { setLobby(l); };
+    const onGameStarted = (l) => {
       setLobby(l);
       localStorage.setItem('lastLobbyId', l.id);
       window.location.href = '/game';
-    });
-    return () => socket?.disconnect();
+    };
+
+    wsClient.on('lobbyUpdate', onLobbyUpdate);
+    wsClient.on('gameStarted', onGameStarted);
+    
+    return () => {
+      wsClient.off('lobbyUpdate', onLobbyUpdate);
+      wsClient.off('gameStarted', onGameStarted);
+    };
   }, []);
 
   useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('lastPlayerName', name); }, [name]);
   useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('lastTheme', theme); }, [theme]);
 
-  const create = () => socket.emit('createLobby', { name, theme }, res => { if (res.ok) setLobby(res.lobby); });
-  const join = () => { if (!lobby?.id) return alert('Enter ID'); socket.emit('joinLobby', { lobbyId: lobby.id, name }, res => { if (res.ok) setLobby(res.lobby); else alert(res.err); }); };
-  const addBot = () => socket.emit('addBot', { lobbyId: lobby.id }, res => { if (res.ok) setLobby(res.lobby); });
-  const start = () => socket.emit('startGame', { lobbyId: lobby.id }, res => { if (!res.ok) alert(res.err); });
+  const create = () => wsClient.emit('createLobby', { name, theme }, res => { if (res.ok) setLobby(res.lobby); });
+  const join = () => { if (!lobby?.id) return alert('Enter ID'); wsClient.emit('joinLobby', { lobbyId: lobby.id, name }, res => { if (res.ok) setLobby(res.lobby); else alert(res.err); }); };
+  const addBot = () => wsClient.emit('addBot', { lobbyId: lobby.id }, res => { if (res.ok) setLobby(res.lobby); });
+  const start = () => wsClient.emit('startGame', { lobbyId: lobby.id }, res => { if (!res.ok) alert(res.err); });
   const setLobbyId = (id) => setLobby(l => ({ ...l, id: id }));
 
   const players = lobby ? lobby.players : [];
