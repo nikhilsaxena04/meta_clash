@@ -3,7 +3,9 @@ package ws
 import (
 	"encoding/json"
 	"log/slog"
+	"time"
 
+	"github.com/nikhilsaxena04/meta_clash/backend/internal/game"
 	"github.com/nikhilsaxena04/meta_clash/backend/internal/models"
 )
 
@@ -172,4 +174,42 @@ func (h *Handlers) handleChooseAttribute(c *Client, msg SocketMessage) {
 	
 	// Wait, standardizing roundResult payload so it mimics the old socket.js
 	// the old socket.js expects: { attr, winnerId, reveals, lobby }
+
+	// Trigger bot loop in the background if the next turn belongs to a bot
+	go h.processBotTurns(res.LobbyObj)
+}
+
+func (h *Handlers) processBotTurns(lobby *models.Lobby) {
+	for lobby.State == models.LobbyStatePlaying {
+		currentPlayer := lobby.Players[lobby.CurrentPlayerIndex]
+		if !currentPlayer.IsBot {
+			break // human's turn, stop bot processing
+		}
+
+		// Wait briefly so the frontend has time to show animations for the previous round
+		time.Sleep(3 * time.Second)
+
+		if !currentPlayer.HasCards() {
+			break
+		}
+
+		botLogic := game.NewMaxStatBot()
+		chosenAttr := botLogic.ChooseAttribute(currentPlayer.Hand[0])
+
+		// Play the round
+		_, res, err := h.Manager.PlayRound(lobby.ID, currentPlayer.ID, string(chosenAttr))
+		if err != nil {
+			slog.Error("Bot failed to play round", "err", err)
+			break
+		}
+
+		h.BroadcastToLobby("roundResult", map[string]interface{}{
+			"attr":     res.Attr,
+			"winnerId": res.WinnerID,
+			"reveals":  res.Reveals,
+			"lobby":    res.LobbyObj,
+		})
+
+		lobby = res.LobbyObj
+	}
 }

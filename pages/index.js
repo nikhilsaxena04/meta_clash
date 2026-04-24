@@ -1,12 +1,22 @@
 // pages/index.js - PREMIUM GLASS LOBBY
 import { useEffect, useRef, useState } from 'react';
 import wsClient from '../lib/ws';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Home() {
   const [lobby, setLobby] = useState(null);
   const [name, setName] = useState('');
   const [theme, setTheme] = useState('One Piece');
+  const [loadingGame, setLoadingGame] = useState(false);
+  const [loadingFact, setLoadingFact] = useState('');
+
+  const facts = [
+    "Did you know? The highest possible attribute value is 99.",
+    "Did you know? Our bots use the MaxStat algorithm to pick their best attribute.",
+    "Did you know? The game automatically adapts to the universe theme you type.",
+    "Did you know? 'One Piece' and 'Pokemon' have special hand-curated character stats.",
+    "Did you know? Meta Clash was rebuilt in Go for high-performance concurrent play."
+  ];
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -20,7 +30,11 @@ export default function Home() {
     const onGameStarted = (l) => {
       setLobby(l);
       localStorage.setItem('lastLobbyId', l.id);
-      window.location.href = '/game';
+      setLoadingFact(facts[Math.floor(Math.random() * facts.length)]);
+      setLoadingGame(true);
+      setTimeout(() => {
+        window.location.href = '/game';
+      }, 10000);
     };
 
     wsClient.on('lobbyUpdate', onLobbyUpdate);
@@ -46,6 +60,21 @@ export default function Home() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden font-sans">
+      <AnimatePresence>
+        {loadingGame && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md"
+          >
+            <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-8" />
+            <h2 className="text-3xl font-black text-white tracking-widest uppercase mb-4 animate-pulse">Summoning Cards...</h2>
+            <p className="text-indigo-300 font-mono text-center max-w-lg">{loadingFact}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="bg-premium" />
       <div className="bg-orb w-96 h-96 bg-purple-600 top-10 left-10 opacity-30" />
       <div className="bg-orb w-80 h-80 bg-blue-600 bottom-20 right-20 animation-delay-2000 opacity-30" />
