@@ -12,7 +12,8 @@ This project follows a decoupled architecture:
   - `cmd/server/`: Main application entry point.
   - `internal/models/`: Core domain structures (Card, Player, Lobby, User).
   - `internal/game/`: Core game loop, combat resolution, and state management.
-  - `internal/api/`: REST endpoints and WebSocket upgrade handlers.
+  - `internal/ws/`: WebSocket hub and concurrent client messaging.
+  - `internal/lobby/`: Real-time session and player matching.
   - `internal/config/`: Environment and configuration loading.
 - **`frontend/`**: The client-side UI (Next.js, React, TailwindCSS).
   - Handles rendering, local state prediction, and WebSocket communication.
