@@ -14,8 +14,15 @@ class WSClient {
         if (this.socket || this.connecting || this.connected) return;
         this.connecting = true;
         
-        // When running Next.js via proxy, or standard local
-        const wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/ws';
+        let wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/ws';
+        
+        // Append JWT token for authentication if available
+        if (typeof window !== 'undefined') {
+            const token = localStorage.getItem('meta_clash_token');
+            if (token) {
+                wsUrl += `?token=${token}`;
+            }
+        }
         
         try {
             this.socket = new WebSocket(wsUrl);

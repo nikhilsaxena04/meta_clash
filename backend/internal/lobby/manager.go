@@ -1,4 +1,31 @@
-package lobby
+Viewed graphify.md:1-9
+Viewed SKILL.md:1-800
+Ran command: `PYTHON=""
+GRAPHIFY_BIN=$(which graphify 2>/dev/null)
+if [ -z "$PYTHON" ] && command -v uv >/dev/null 2>&1; then
+    _UV_PY=$(uv tool run graphifyy python -c "import sys; print(sys.executable)" 2>/dev/null)
+    if [ -n "$_UV_PY" ]; then PYTHON="$_UV_PY"; fi
+fi
+if [ -z "$PYTHON" ] && [ -n "$GRAPHIFY_BIN" ]; then
+    _SHEBANG=$(head -1 "$GRAPHIFY_BIN" | tr -d '#!')
+    case "$_SHEBANG" in
+        *[!a-zA-Z0-9/_.-]*) ;;
+        *) "$_SHEBANG" -c "import graphify" 2>/dev/null && PYTHON="$_SHEBANG" ;;
+    esac
+fi
+if [ -z "$PYTHON" ]; then PYTHON="python3"; fi
+"$PYTHON" -c "import graphify" 2>/dev/null || "$PYTHON" -m pip install graphifyy -q 2>/dev/null || "$PYTHON" -m pip install graphifyy -q --break-system-packages 2>&1 | tail -3
+mkdir -p graphify-out
+"$PYTHON" -c "import sys; open('graphify-out/.graphify_python', 'w').write(sys.executable)"`
+Ran command: `$(cat graphify-out/.graphify_python) -c "
+import json
+from graphify.detect import detect
+from pathlib import Path
+result = detect(Path('.'))
+print(json.dumps(result))
+" > graphify-out/.graphify_detect.json`
+Ran command: `jq -r '"Corpus: \(.total_files) files · ~\(.total_words) words\n  code: \(.files.code | length) files\n  docs: \(.files.docs | length) files\n  images: \(.files.image | length) files"' graphify-out/.graphify_detect.json`
+Ran command: `jq -r '.files | keys' graphify-out/.graphify_detect.json`package lobby
 
 import (
 	"crypto/rand"
@@ -15,14 +42,16 @@ type Manager struct {
 	store     models.LobbyStore
 	generator models.CardGenerator
 	engine    *game.Engine
+	userRepo  models.UserRepository
 }
 
 // NewManager creates a LobbyManager with injected dependencies.
-func NewManager(store models.LobbyStore, generator models.CardGenerator, engine *game.Engine) *Manager {
+func NewManager(store models.LobbyStore, generator models.CardGenerator, engine *game.Engine, userRepo models.UserRepository) *Manager {
 	return &Manager{
 		store:     store,
 		generator: generator,
 		engine:    engine,
+		userRepo:  userRepo,
 	}
 }
 
@@ -196,15 +225,46 @@ func (m *Manager) PlayRound(code string, playerID models.PlayerID, attr string) 
 	// Attach the mutated lobby to the result purely for convenience if needed
 	result.LobbyObj = lobby
 
+	if lobby.State == models.LobbyStateFinished && m.userRepo != nil {
+		winnerID := ""
+		if lobby.Winner != nil {
+			winnerID = string(lobby.Winner.ID)
+		}
+		
+		// Use lobby.ID (the code) combined with timestamp to ensure unique match ID
+		// or just a random UUID. We'll use randomShortID() + lobby.ID
+		matchID := randomShortID() + "-" + lobby.ID
+
+		match := &models.Match{
+			ID:         matchID,
+			LobbyCode:  lobby.ID,
+			Theme:      lobby.Theme,
+			WinnerID:   winnerID,
+			StartedAt:  lobby.CreatedAt, // Assuming lobby creation time is roughly start time
+			FinishedAt: time.Now(),
+		}
+
+		var mPlayers []models.MatchPlayer
+		for _, p := range lobby.Players {
+			mPlayers = append(mPlayers, models.MatchPlayer{
+				MatchID: matchID,
+				UserID:  string(p.ID),
+				IsBot:   p.IsBot,
+				Score:   p.Score,
+			})
+		}
+
+		// Fire and forget, or handle error. It's safe to just log it, but here we return it if it fails
+		if err := m.userRepo.SaveMatch(match, mPlayers); err != nil {
+			// In production, we might just log this rather than returning a 500 to the websocket,
+			// but for this MVP, returning the error is fine or we can just ignore it to not crash the game.
+			fmt.Printf("Error saving match history: %v\n", err)
+		}
+	}
+
 	if err := m.store.Update(lobby); err != nil {
 		return nil, nil, fmt.Errorf("failed to update lobby: %w", err)
 	}
-
-	// Wait, we need to recursively handle bots if the winner was a bot!
-	// but the MVP requirement is just the manual action. We'll let frontend or a worker handle bots.
-	// Actually, old node.js server checked if `lobby.players[lobby.currentPlayerIndex].isBot` and played instantly.
-	// We can do that by returning the result and letting the handlers goroutine play for the bot,
-	// or we just handle it directly here if we want synchronous bot plays. Let's do it in the handlers.
 	
 	return lobby, result, nil
 }
