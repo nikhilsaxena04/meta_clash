@@ -163,7 +163,7 @@ func main() {
 	// Applied outermost-first: Recovery → CORS → Logging → mux
 	var handler http.Handler = mux
 	handler = middleware.Logging(handler)
-	handler = middleware.CORS("http://localhost:3000")(handler)
+	handler = middleware.CORS(cfg.AllowedOrigin)(handler)
 	handler = middleware.Recovery(handler)
 
 	// ── Server ─────────────────────────────────────────────────

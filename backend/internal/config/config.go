@@ -10,15 +10,16 @@ import (
 // Config holds all application settings loaded from environment variables.
 type Config struct {
 	// Server
-	Port int
+	Port          int
+	AllowedOrigin string
 
 	// Jikan API
 	JikanBaseURL string
 	JikanTimeout time.Duration
 
 	// Auth
-	JWTSecret     string
-	JWTExpiry     time.Duration
+	JWTSecret string
+	JWTExpiry time.Duration
 
 	// Database
 	DatabaseURL string
@@ -28,12 +29,13 @@ type Config struct {
 // No external dependencies — uses only os.Getenv + strconv.
 func Load() *Config {
 	return &Config{
-		Port:         envInt("PORT", 8080),
-		JikanBaseURL: envStr("JIKAN_BASE_URL", "https://api.jikan.moe/v4"),
-		JikanTimeout: envDuration("JIKAN_TIMEOUT", 3*time.Second),
-		JWTSecret:    envStr("JWT_SECRET", "dev-secret-change-in-production"),
-		JWTExpiry:    envDuration("JWT_EXPIRY", 24*time.Hour),
-		DatabaseURL:  envStr("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/meta_clash?sslmode=disable"),
+		Port:          envInt("PORT", 8080),
+		AllowedOrigin: envStr("ALLOWED_ORIGIN", "http://localhost:3000"),
+		JikanBaseURL:  envStr("JIKAN_BASE_URL", "https://api.jikan.moe/v4"),
+		JikanTimeout:  envDuration("JIKAN_TIMEOUT", 3*time.Second),
+		JWTSecret:     envStr("JWT_SECRET", "dev-secret-change-in-production"),
+		JWTExpiry:     envDuration("JWT_EXPIRY", 24*time.Hour),
+		DatabaseURL:   envStr("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/meta_clash?sslmode=disable"),
 	}
 }
 
