@@ -18,7 +18,7 @@ export default function PlayerSeat({ player, position, isTurn }) {
     <div className={`absolute flex items-center justify-center gap-4 ${flexDir} z-10 transition-all duration-500`} style={getSeatStyles(position)}>
       
       {/* Profile Container */}
-      <div className={`p-3 rounded-2xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl w-40 md:w-48 ${isTurn ? 'bg-indigo-900/60 border-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.6)] scale-105' : 'bg-black/60 border-white/10'}`}>
+      <div className={`p-3 rounded-2xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl w-32 sm:w-40 md:w-48 ${isTurn ? 'bg-indigo-900/60 border-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.6)] scale-105' : 'bg-black/60 border-white/10'}`}>
         <div className="flex justify-between items-center mb-2 relative z-10">
           <div className="font-bold flex items-center gap-1.5 text-xs md:text-sm text-white truncate">
              {player.name}
@@ -32,7 +32,7 @@ export default function PlayerSeat({ player, position, isTurn }) {
       </div>
 
       {/* Hand Stack (Face down) */}
-      <div className={`relative mt-2 md:mt-0 ${(position === 'left' || position === 'right') ? '-translate-x-4 md:-translate-x-6' : ''}`} style={{ width: '100px', height: '140px' }}>
+      <div className={`relative mt-2 md:mt-0 ${(position === 'left' || position === 'right') ? '-translate-x-4 md:-translate-x-6' : ''}`} style={{ width: '80px', height: '120px' }}>
          {Array.from({ length: cardCount }).map((_, idx) => {
            // Provide a consistent layoutId so we can animate from hand to table.
            const cardData = player.hand?.[idx];
@@ -44,7 +44,7 @@ export default function PlayerSeat({ player, position, isTurn }) {
                 top: 0,
                 left: idx * fanDir,
                 zIndex: idx,
-                transform: 'scale(0.35)',
+                transform: 'scale(0.45)',
                 transformOrigin: 'top left'
              }}>
                <div className="pointer-events-none">
@@ -63,10 +63,10 @@ function getSeatStyles(position) {
   // We use fixed absolute positioning around the screen.
   // Responsive tweaks can be added via classes, but inline styles guarantee the anchor points.
   switch (position) {
-    case 'bottom': return { bottom: '2%', left: '50%', transform: 'translateX(-50%)' };
-    case 'top': return { top: '2%', left: '50%', transform: 'translateX(-50%)' };
-    case 'left': return { left: '2%', top: '50%', transform: 'translateY(-50%)' };
-    case 'right': return { right: '2%', top: '50%', transform: 'translateY(-50%)' };
+    case 'bottom': return { bottom: '10px', left: '50%', transform: 'translateX(-50%)' };
+    case 'top': return { top: '10px', left: '50%', transform: 'translateX(-50%)' };
+    case 'left': return { left: '10px', top: '50%', transform: 'translateY(-50%)' };
+    case 'right': return { right: '10px', top: '50%', transform: 'translateY(-50%)' };
     default: return {};
   }
 }

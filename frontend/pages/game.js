@@ -191,7 +191,7 @@ export default function Game() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="absolute inset-0 flex flex-col items-center justify-center z-40 pointer-events-none"
+                            className="absolute inset-y-[15vh] inset-x-4 md:inset-y-[20vh] md:inset-x-12 flex flex-col items-center justify-center z-40 pointer-events-none"
                         >
                             <div className="mb-2 md:mb-4 text-center bg-black/40 backdrop-blur-md px-6 py-3 md:px-8 md:py-4 rounded-3xl border border-white/10 shadow-2xl">
                                 <h2 className={`text-2xl md:text-4xl font-black uppercase tracking-tighter ${isMyTurn ? 'text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]' : 'text-slate-500'}`}>{isMyTurn ? "YOUR TURN" : `${lobby.players[lobby.currentPlayerIndex]?.name}'s Turn`}</h2>
@@ -222,10 +222,10 @@ export default function Game() {
                 </AnimatePresence>
 
                 {/* Center Table Arena (Horizontal Row) */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
+                <div className="absolute inset-y-[15vh] inset-x-4 md:inset-y-[20vh] md:inset-x-12 flex flex-col items-center justify-center z-20 pointer-events-none">
                     {/* Battle Arena Cards */}
                     {tableCards.length > 0 && (
-                        <div className={`flex flex-row justify-center items-center gap-2 md:gap-6 transition-all duration-1000 ease-in-out ${animState === 'SWEEPING' ? 'scale-50 opacity-0' : 'scale-100 opacity-100'}`}>
+                        <div className={`flex flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 md:gap-6 transition-all duration-1000 ease-in-out ${animState === 'SWEEPING' ? 'scale-50 opacity-0' : 'scale-100 opacity-100'}`}>
                             {tableCards.map((card, i) => {
                                 if (!card) return null;
                                 const p = lobby.players[i];
