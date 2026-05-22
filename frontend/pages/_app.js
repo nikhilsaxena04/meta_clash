@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }) {
       <Head>
         <title>META CLASH | Infinite Card Battles</title>
         <meta name="description" content="Generate and battle with any character in the universe." />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </Head>
       <Component {...pageProps} />
     </>
