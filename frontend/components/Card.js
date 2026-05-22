@@ -2,7 +2,7 @@
 import { motion } from 'framer-motion';
 
 export default function Card({ card, faceDown = false, selected = false, layoutId }) {
-  if (!card && !faceDown) return <div className="w-[100px] h-[150px] sm:w-[120px] sm:h-[180px] md:w-36 md:h-52 lg:w-48 lg:h-72 bg-white/5 rounded-2xl border-2 border-dashed border-white/10 animate-pulse" />;
+  if (!card && !faceDown) return <div className="w-16 h-24 sm:w-[100px] sm:h-[150px] md:w-36 md:h-52 lg:w-48 lg:h-72 bg-white/5 rounded-2xl border-2 border-dashed border-white/10 animate-pulse" />;
 
   return (
     <motion.div
@@ -12,7 +12,7 @@ export default function Card({ card, faceDown = false, selected = false, layoutI
       exit={{ opacity: 0, scale: 0.8 }}
       transition={{ duration: 0.6, type: "spring", stiffness: 260, damping: 20 }}
       style={{ transformStyle: 'preserve-3d' }}
-      className={`relative w-[100px] h-[150px] sm:w-[120px] sm:h-[180px] md:w-36 md:h-52 lg:w-48 lg:h-72 rounded-2xl ${selected ? 'shadow-[0_0_40px_rgba(250,204,21,0.5)] scale-105 z-10' : 'shadow-xl'}`}
+      className={`relative w-16 h-24 sm:w-[100px] sm:h-[150px] md:w-36 md:h-52 lg:w-48 lg:h-72 rounded-2xl ${selected ? 'shadow-[0_0_40px_rgba(250,204,21,0.5)] scale-105 z-10' : 'shadow-xl'}`}
     >
       {/* Front Face (faceDown = false) */}
       <div 
