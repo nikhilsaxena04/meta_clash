@@ -68,8 +68,8 @@ func TestCORS_Preflight(t *testing.T) {
 	}
 }
 
-func TestCORS_DisallowedOrigin(t *testing.T) {
-	handler := CORS("http://localhost:3000")(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func TestCORS_EchoesOrigin(t *testing.T) {
+	handler := CORS()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
@@ -79,18 +79,18 @@ func TestCORS_DisallowedOrigin(t *testing.T) {
 	handler.ServeHTTP(w, req)
 
 	origin := w.Header().Get("Access-Control-Allow-Origin")
-	if origin != "" {
-		t.Errorf("Allow-Origin should be empty for disallowed origin, got %q", origin)
+	if origin != "http://evil.com" {
+		t.Errorf("Allow-Origin = %q, want %q", origin, "http://evil.com")
 	}
 }
 
-func TestCORS_WildcardWhenNoOrigins(t *testing.T) {
+func TestCORS_WildcardWhenEmptyOrigin(t *testing.T) {
 	handler := CORS()(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	}))
 
 	req := httptest.NewRequest(http.MethodGet, "/test", nil)
-	req.Header.Set("Origin", "http://anything.com")
+	// No Origin header set
 	w := httptest.NewRecorder()
 	handler.ServeHTTP(w, req)
 
