@@ -143,6 +143,9 @@ func (h *Handlers) handleStartGame(c *Client, msg SocketMessage) {
 
 	c.Reply(msg.ReqID, msg.Action, true, "", nil)
 	h.BroadcastToLobby("gameStarted", l)
+	
+	// Trigger bot loop for the first turn if a bot was randomly chosen to start
+	go h.processBotTurns(l, false)
 }
 
 func (h *Handlers) handleChooseAttribute(c *Client, msg SocketMessage) {
@@ -176,10 +179,10 @@ func (h *Handlers) handleChooseAttribute(c *Client, msg SocketMessage) {
 	// the old socket.js expects: { attr, winnerId, reveals, lobby }
 
 	// Trigger bot loop in the background if the next turn belongs to a bot
-	go h.processBotTurns(res.LobbyObj)
+	go h.processBotTurns(res.LobbyObj, true)
 }
 
-func (h *Handlers) processBotTurns(lobby *models.Lobby) {
+func (h *Handlers) processBotTurns(lobby *models.Lobby, isContinuation bool) {
 	for lobby.State == models.LobbyStatePlaying {
 		currentPlayer := lobby.Players[lobby.CurrentPlayerIndex]
 		if !currentPlayer.IsBot {
@@ -187,7 +190,12 @@ func (h *Handlers) processBotTurns(lobby *models.Lobby) {
 		}
 
 		// Wait briefly so the frontend has time to show animations for the previous round
-		time.Sleep(3 * time.Second)
+		if isContinuation {
+			time.Sleep(15 * time.Second)
+		} else {
+			time.Sleep(4 * time.Second)
+		}
+		isContinuation = true
 
 		if !currentPlayer.HasCards() {
 			break

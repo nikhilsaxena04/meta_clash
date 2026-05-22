@@ -1,14 +1,17 @@
-// pages/game.js - FINAL ALIGNMENT FIX
 import { useEffect, useState, useRef } from 'react';
 import wsClient from '../lib/ws';
 import Card from '../components/Card';
-import { motion, AnimatePresence } from 'framer-motion';
+import PlayerSeat from '../components/PlayerSeat';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 export default function Game() {
     const [lobby, setLobby] = useState(null);
-    const [logs, setLogs] = useState([]);
-    const [lastRound, setLastRound] = useState(null);
     const [name, setName] = useState(''); 
+    
+    // Animation State Machine
+    // IDLE -> PLAYING_CARDS -> REVEALING -> EVALUATING -> SWEEPING -> IDLE
+    const [animState, setAnimState] = useState('IDLE');
+    const [roundData, setRoundData] = useState(null);
 
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -17,9 +20,16 @@ export default function Game() {
 
         wsClient.connect();
 
-        const onLobbyUpdate = l => { setLobby(l); };
+        const onLobbyUpdate = l => { 
+            if (animState === 'IDLE') setLobby(l); 
+        };
         const onGameStarted = l => { setLobby(l); };
-        const onRoundResult = data => { setLastRound(data); setLobby(data.lobby); };
+        
+        const onRoundResult = data => { 
+            setRoundData(data);
+            setAnimState('PLAYING_CARDS'); 
+            // We deliberately delay setting the lobby state so the animation plays out
+        };
         const onConnectError = e => { console.error("Socket Error:", e); };
 
         wsClient.on('lobbyUpdate', onLobbyUpdate);
@@ -32,8 +42,6 @@ export default function Game() {
             const storedName = localStorage.getItem('lastPlayerName') || 'Player';
             
             if (storedLobbyId) {
-                // To avoid emit firing before connect, emit manages it internally, but setTimeout is safer 
-                // since we just called connect() linearly.
                 setTimeout(() => {
                     wsClient.emit('joinLobby', { lobbyId: storedLobbyId, name: storedName }, res => {
                         if (res.ok) setLobby(res.lobby);
@@ -49,10 +57,38 @@ export default function Game() {
             wsClient.off('roundResult', onRoundResult);
             wsClient.off('connect_error', onConnectError);
         };
-    }, []);
+    }, [animState]);
+
+    // Animation Orchestrator
+    useEffect(() => {
+        if (animState === 'PLAYING_CARDS') {
+            // Cards fly to center face down
+            const t = setTimeout(() => setAnimState('REVEALING'), 1500);
+            return () => clearTimeout(t);
+        }
+        if (animState === 'REVEALING') {
+            // Cards flip face up
+            const t = setTimeout(() => setAnimState('EVALUATING'), 2500);
+            return () => clearTimeout(t);
+        }
+        if (animState === 'EVALUATING') {
+            // Highlight winning stat
+            const t = setTimeout(() => setAnimState('SWEEPING'), 5000);
+            return () => clearTimeout(t);
+        }
+        if (animState === 'SWEEPING') {
+            // Cards fly to winner, then apply new state
+            const t = setTimeout(() => {
+                setLobby(roundData.lobby);
+                setRoundData(null);
+                setAnimState('IDLE');
+            }, 1500);
+            return () => clearTimeout(t);
+        }
+    }, [animState, roundData]);
 
     const chooseAttr = (attr) => {
-        if (!lobby) return;
+        if (!lobby || animState !== 'IDLE') return;
         const me = lobby.players.find(p => p.name === name);
         if (!me) return; 
         
@@ -61,20 +97,16 @@ export default function Game() {
         });
     };
     
-    const me = lobby?.players?.find(p => p.name === name);
-    const isMyTurn = lobby?.state === 'playing' && lobby?.players[lobby.currentPlayerIndex]?.id === me?.id;
-    const myTopCard = me?.hand?.[0];
-
     useEffect(() => {
         if (lobby && lobby.state !== 'playing' && lobby.state !== 'finished') { window.location.href = '/'; }
     }, [lobby]);
 
-    if (!lobby || lobby.state === 'waiting') return <div className="min-h-screen bg-premium flex items-center justify-center text-white font-bold tracking-widest animate-pulse select-none">CONNECTING...</div>;
+    if (!lobby || lobby.state === 'waiting') return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-bold tracking-widest animate-pulse select-none">CONNECTING...</div>;
 
     if (lobby.state === 'finished' && lobby.winner) {
         return (
-            <div className="min-h-screen bg-premium flex flex-col items-center justify-center relative overflow-hidden font-sans select-none">
-                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/20 to-black z-0" />
+            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden font-sans select-none">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/40 via-black to-black z-0" />
                 <div className="glass-panel p-16 rounded-3xl text-center relative z-10 border border-yellow-500/30 shadow-[0_0_100px_rgba(234,179,8,0.2)]">
                     <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-yellow-600 mb-6 drop-shadow-xl">VICTORY</h1>
                     <div className="text-4xl font-bold text-white mb-4">🏆 {lobby.winner.name} 🏆</div>
@@ -85,111 +117,150 @@ export default function Game() {
         );
     }
 
+    // Radial Seating Logic
+    const meIndex = lobby.players.findIndex(p => p.name === name);
+    const sortedPlayers = [];
+    if (meIndex !== -1) {
+        for (let i = 0; i < lobby.players.length; i++) {
+            sortedPlayers.push(lobby.players[(meIndex + i) % lobby.players.length]);
+        }
+    } else {
+        // Observer mode fallback
+        sortedPlayers.push(...lobby.players);
+    }
+
+    // Assign positions based on player count (Max 4)
+    const posMap = {
+        1: ['bottom'],
+        2: ['bottom', 'top'],
+        3: ['bottom', 'left', 'right'],
+        4: ['bottom', 'left', 'top', 'right']
+    }[Math.min(sortedPlayers.length, 4)] || ['bottom'];
+
+    const me = sortedPlayers[0];
+    const isMyTurn = lobby.state === 'playing' && lobby.players[lobby.currentPlayerIndex]?.id === me?.id && animState === 'IDLE';
+    const myTopCard = me?.hand?.[0];
+
+    // Determine what cards are currently in the center table arena
+    const getTableCards = () => {
+        if (animState === 'IDLE') return [];
+        return roundData?.reveals || [];
+    };
+    const tableCards = getTableCards();
+
     return (
-        <div className="min-h-screen bg-premium p-6 flex flex-col gap-6 text-white font-sans overflow-hidden relative select-none">
-            {/* Header */}
-            <header className="flex justify-between items-center bg-black/20 p-4 rounded-2xl border border-white/5 backdrop-blur-md z-20">
-                <div className="flex items-center gap-4">
-                    <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">META CLASH</h1>
-                    <span className="bg-white/5 px-3 py-1 rounded text-xs font-mono tracking-widest text-slate-400 border border-white/10">ROUND {lobby.round} / 6</span>
-                </div>
-                <div className="font-mono text-sm text-slate-500 bg-black/40 px-3 py-1 rounded-lg">ID: {lobby.id}</div>
-            </header>
+        <LayoutGroup>
+            <div className="min-h-screen bg-slate-950 p-6 flex flex-col font-sans overflow-hidden relative select-none">
+                {/* Background Felt/Gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 z-0 pointer-events-none" />
 
-            <div className="flex-1 flex gap-6 h-full relative z-10">
-                {/* Left Panel */}
-                <div className="w-80 flex flex-col gap-3">
-                    {lobby.players.map(p => (
-                        <div key={p.id} className={`p-4 rounded-2xl border transition-all relative overflow-hidden ${p.id === lobby.players[lobby.currentPlayerIndex]?.id ? 'bg-indigo-900/30 border-indigo-500/50 shadow-[0_0_20px_rgba(99,102,241,0.2)]' : 'bg-white/5 border-white/5'}`}>
-                            <div className="flex justify-between items-center mb-2 relative z-10">
-                                <div className="font-bold flex items-center gap-2">{p.name} {p.isBot && <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-500/20">BOT</span>}</div>
-                                <div className="text-xl font-black text-indigo-300">{p.totalWins}</div>
-                            </div>
-                            <div className="h-1.5 bg-black/50 rounded-full overflow-hidden relative z-10">
-                                <div style={{ width: `${(p.totalWins / 6) * 100}%` }} className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500" />
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                {/* Center Arena */}
-                <div className="flex-1 flex flex-col items-center justify-center relative pb-24">
-                    {/* Status Message */}
-                    <div className="mb-12 text-center relative z-10">
-                        <h2 className={`text-5xl font-black uppercase tracking-tighter ${isMyTurn ? 'text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]' : 'text-slate-600'}`}>{isMyTurn ? "YOUR TURN" : `${lobby.players[lobby.currentPlayerIndex]?.name}'s Turn`}</h2>
-                        <p className="text-slate-400 mt-3 font-mono text-xs tracking-[0.2em] uppercase opacity-70">{isMyTurn ? "Select an attack attribute" : "Waiting for opponent move..."}</p>
+                {/* Header */}
+                <header className="flex justify-between items-center p-4 z-20 absolute top-4 left-4 right-4 pointer-events-none">
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">META CLASH</h1>
+                        <span className="bg-white/5 px-3 py-1 rounded text-xs font-mono tracking-widest text-slate-400 border border-white/10">ROUND {lobby.round} / 6</span>
                     </div>
+                    <div className="font-mono text-sm text-slate-500 bg-black/40 px-3 py-1 rounded-lg">ID: {lobby.id}</div>
+                </header>
 
-                    {/* Active Card + Buttons Wrapper */}
-                    <div className="relative flex flex-col items-center justify-center mt-4">
-                        
-                        {/* Card */}
-                        <div className="relative group perspective-1000 z-10">
-                            {myTopCard ? (
-                                <div className={`relative transition-all duration-500 ${isMyTurn ? 'scale-110 shadow-[0_0_60px_rgba(124,58,237,0.3)]' : 'scale-95 opacity-60 grayscale-[0.8]'}`}>
-                                    <Card card={myTopCard} selected={isMyTurn} />
-                                </div>
-                            ) : (
-                                <div className="w-56 h-80 rounded-2xl bg-white/5 border-2 border-dashed border-white/10 flex items-center justify-center text-slate-600 font-bold tracking-widest">
-                                    EMPTY HAND
-                                </div>
-                            )}
-                        </div>
+                {/* Player Seats */}
+                {sortedPlayers.slice(0,4).map((p, i) => {
+                    // Determine if we should hide their top card from their hand 
+                    // (because it's in the center OR it's the local player's turn to act)
+                    const isCardInCenter = animState !== 'IDLE' && roundData;
+                    const isMyActiveCard = isMyTurn && p.id === me?.id;
+                    const shouldHideTop = (isCardInCenter || isMyActiveCard) && p.hand;
+                    const visualPlayer = { ...p, hand: shouldHideTop ? p.hand.slice(1) : p.hand };
+                    
+                    return (
+                        <PlayerSeat 
+                            key={p.id} 
+                            player={visualPlayer} 
+                            position={posMap[i]} 
+                            isTurn={lobby.players[lobby.currentPlayerIndex]?.id === p.id && animState === 'IDLE'}
+                            totalPlayers={sortedPlayers.length}
+                        />
+                    );
+                })}
 
-                        {/* Attribute Buttons perfectly centered */}
-                        <AnimatePresence>
+                {/* IDLE Center UI */}
+                <AnimatePresence>
+                    {animState === 'IDLE' && (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            transition={{ duration: 0.6, ease: "easeOut" }}
+                            className="absolute inset-0 flex flex-col items-center justify-center z-40 pointer-events-none"
+                        >
+                            <div className="mb-2 md:mb-4 text-center bg-black/40 backdrop-blur-md px-6 py-3 md:px-8 md:py-4 rounded-3xl border border-white/10 shadow-2xl">
+                                <h2 className={`text-2xl md:text-4xl font-black uppercase tracking-tighter ${isMyTurn ? 'text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]' : 'text-slate-500'}`}>{isMyTurn ? "YOUR TURN" : `${lobby.players[lobby.currentPlayerIndex]?.name}'s Turn`}</h2>
+                                <p className="text-slate-400 mt-1 md:mt-2 font-mono text-[10px] md:text-xs tracking-[0.2em] uppercase opacity-70">{isMyTurn ? "Select an attack attribute" : "Waiting for opponent move..."}</p>
+                            </div>
+
                             {isMyTurn && myTopCard && (
-                                <motion.div
-                                    initial={{ y: 20, opacity: 0 }}
-                                    animate={{ y: 0, opacity: 1 }}
-                                    exit={{ y: 20, opacity: 0 }}
-                                    className="absolute -bottom-36 flex gap-4 bg-black/80 backdrop-blur-xl p-4 rounded-3xl border border-white/20 shadow-2xl z-50"
-                                >
-                                    {Object.keys(myTopCard.stats).map(attr => (
-                                        <button
-                                            key={attr}
-                                            onClick={() => chooseAttr(attr)}
-                                            className="px-8 py-4 rounded-xl bg-white/10 hover:bg-indigo-600 hover:scale-105 border border-white/10 hover:border-indigo-400 transition-all group cursor-pointer active:scale-95 select-none"
-                                        >
-                                            <span className="text-sm uppercase font-black text-slate-300 group-hover:text-white tracking-widest pointer-events-none">
+                                <div className="flex flex-col items-center pointer-events-auto">
+                                    <motion.div layoutId={`card-${myTopCard.id}`} className="z-50 shadow-[0_0_50px_rgba(0,0,0,0.8)] rounded-2xl mb-4 md:mb-6 mt-2 md:mt-4">
+                                        <Card card={myTopCard} faceDown={false} />
+                                    </motion.div>
+                                    
+                                    <div className="flex gap-2 md:gap-4 bg-black/50 p-3 md:p-4 rounded-2xl backdrop-blur-xl border border-white/5 shadow-2xl">
+                                        {['rank', 'strength', 'speed', 'iq'].map(attr => (
+                                            <button
+                                                key={attr}
+                                                onClick={() => chooseAttr(attr)}
+                                                className="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-white/5 hover:bg-white/20 text-white font-bold tracking-wider text-xs md:text-sm uppercase transition-all duration-300 hover:scale-105 active:scale-95 border border-white/10 hover:border-white/30"
+                                            >
                                                 {attr}
-                                            </span>
-                                        </button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-
-                </div>
-
-                {/* Right Panel */}
-                <div className="w-80 bg-black/20 rounded-2xl border border-white/5 p-5 flex flex-col backdrop-blur-sm">
-                    <h3 className="font-bold text-slate-500 uppercase tracking-widest text-[10px] mb-4">Last Round Result</h3>
-                    {lastRound ? (
-                        <div className="flex-1 flex flex-col">
-                            <div className="mb-4 p-4 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-xl border border-indigo-500/20">
-                                <div className="text-[10px] text-indigo-300 uppercase tracking-wider mb-1">Battle Attribute</div>
-                                <div className="text-2xl font-black text-white capitalize">{lastRound.attr}</div>
-                            </div>
-                            <div className="mb-4 px-2">
-                                <div className="text-[10px] text-slate-500 mb-2 uppercase tracking-wider">Round Winner</div>
-                                <div className="font-bold text-emerald-400 flex items-center gap-2 text-lg"><div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_10px_rgba(52,211,153,0.8)]" />{lobby.players.find(p => p.id === lastRound.winnerId)?.name || 'Unknown'}</div>
-                            </div>
-                            <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                                {lastRound.reveals.map((c, i) => c && (
-                                    <div key={i} className="flex items-center gap-3 p-2 bg-white/5 rounded-lg border border-white/5">
-                                        <div className="w-10 h-10 rounded-lg overflow-hidden relative"><img src={c.image} className="w-full h-full object-cover" /></div>
-                                        <div><div className="text-xs font-bold text-white truncate w-24">{c.name}</div><div className="text-sm font-mono font-bold text-slate-400">{Math.floor(c.stats[lastRound.attr])}</div></div>
+                                            </button>
+                                        ))}
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Center Table Arena (Horizontal Row) */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none">
+                    {/* Battle Arena Cards */}
+                    {tableCards.length > 0 && (
+                        <div className={`flex flex-row justify-center items-center gap-2 md:gap-6 transition-all duration-1000 ease-in-out ${animState === 'SWEEPING' ? 'scale-50 opacity-0' : 'scale-100 opacity-100'}`}>
+                            {tableCards.map((card, i) => {
+                                if (!card) return null;
+                                const p = lobby.players[i];
+                                const isWinner = roundData.winnerId === p.id;
+                                const isFaceDown = animState === 'PLAYING_CARDS';
+                                const layoutId = card.id ? `card-${card.id}` : `card-hidden-${p.id}-0`;
+
+                                return (
+                                    <div key={i} className={`relative flex flex-col items-center`}>
+                                        <span className="absolute -top-6 text-[10px] md:text-xs font-black text-slate-400 tracking-widest">{p.name}</span>
+                                        <div className="scale-75 md:scale-90 shadow-2xl">
+                                            <Card 
+                                                card={card} 
+                                                faceDown={isFaceDown} 
+                                                selected={animState === 'EVALUATING' && isWinner} 
+                                                layoutId={layoutId} 
+                                            />
+                                        </div>
+                                        {animState === 'EVALUATING' && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className={`absolute -bottom-8 px-4 py-1 rounded-full text-xs font-black tracking-widest z-40 ${isWinner ? 'bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)]' : 'bg-slate-800 text-slate-400'}`}
+                                            >
+                                                {card.stats[roundData.attr]} {roundData.attr}
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
-                    ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center opacity-30"><div className="text-4xl mb-2">⏱️</div><div className="text-xs font-bold uppercase tracking-widest">No history yet</div></div>
                     )}
                 </div>
+
             </div>
-        </div>
+        </LayoutGroup>
     );
 }

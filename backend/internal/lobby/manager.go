@@ -138,15 +138,7 @@ func (m *Manager) StartGame(code string) (*models.Lobby, error) {
 		return nil, fmt.Errorf("cannot start: need at least 2 players")
 	}
 
-	// Auto-fill with bots
-	for len(lobby.Players) < lobby.MaxPlayers {
-		bot := models.Player{
-			ID:    models.PlayerID(randomShortID()),
-			Name:  "BOT-" + randomShortID()[:3],
-			IsBot: true,
-		}
-		lobby.Players = append(lobby.Players, bot)
-	}
+	// Removed auto-fill with bots to allow dynamic lobby sizes
 
 	// Deal cards (also transitions state to playing)
 	if err := m.engine.Deal(lobby); err != nil {
