@@ -22,9 +22,9 @@ type Generator struct {
 }
 
 // NewGenerator creates a CardGenerator with the given Jikan API base URL and timeout.
-func NewGenerator(jikanBaseURL string, timeout time.Duration) *Generator {
+func NewGenerator(jikanBaseURL string, timeout time.Duration, geminiAPIKey string) *Generator {
 	return &Generator{
-		jikanClient: NewJikanClient(jikanBaseURL, timeout),
+		jikanClient: NewJikanClient(jikanBaseURL, timeout, geminiAPIKey),
 	}
 }
 

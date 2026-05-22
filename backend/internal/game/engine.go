@@ -80,28 +80,34 @@ func (e *Engine) ResolveRound(lobby *models.Lobby, attr models.Attribute) (*mode
 
 	// Find the winner by comparing the chosen attribute
 	bestVal := -1
-	winnerIdx := 0
+	var winnerIdxs []int
 	for i, card := range reveals {
 		val := card.Stats.Get(attr)
 		if val > bestVal {
 			bestVal = val
-			winnerIdx = i
+			winnerIdxs = []int{i}
+		} else if val == bestVal {
+			winnerIdxs = append(winnerIdxs, i)
 		}
 	}
 
 	// Update scores
-	lobby.Players[winnerIdx].Score++
+	var winnerIDs []models.PlayerID
+	for _, idx := range winnerIdxs {
+		lobby.Players[idx].Score++
+		winnerIDs = append(winnerIDs, lobby.Players[idx].ID)
+	}
 
 	result := &models.RoundResult{
-		Round:    lobby.Round,
-		Attr:     attr,
-		Reveals:  reveals,
-		WinnerID: lobby.Players[winnerIdx].ID,
+		Round:     lobby.Round,
+		Attr:      attr,
+		Reveals:   reveals,
+		WinnerIDs: winnerIDs,
 	}
 	lobby.History = append(lobby.History, *result)
 
-	// Winner goes next
-	lobby.CurrentPlayerIndex = winnerIdx
+	// Winner goes next (if tied, first tied player goes next)
+	lobby.CurrentPlayerIndex = winnerIdxs[0]
 
 	// Check if game is over (no cards remaining)
 	cardsRemaining := 0

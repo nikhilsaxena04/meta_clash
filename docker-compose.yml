@@ -27,6 +27,7 @@ services:
       - JWT_EXPIRY=24h
       - JIKAN_BASE_URL=https://api.jikan.moe/v4
       - JIKAN_TIMEOUT=5s
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
     ports:
       - "8080:8080"
     depends_on:

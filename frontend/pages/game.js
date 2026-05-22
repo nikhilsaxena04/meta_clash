@@ -229,7 +229,7 @@ export default function Game() {
                             {tableCards.map((card, i) => {
                                 if (!card) return null;
                                 const p = lobby.players[i];
-                                const isWinner = roundData.winnerId === p.id;
+                                const isWinner = roundData.winnerIds && roundData.winnerIds.includes(p.id);
                                 const isFaceDown = animState === 'PLAYING_CARDS';
                                 const layoutId = card.id ? `card-${card.id}` : `card-hidden-${p.id}-0`;
 

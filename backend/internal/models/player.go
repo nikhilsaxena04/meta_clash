@@ -39,7 +39,7 @@ type RoundResult struct {
 	Round    int       `json:"round"`
 	Attr     Attribute `json:"attr"`
 	Reveals  []Card    `json:"reveals"`   // Each player's played card
-	WinnerID PlayerID  `json:"winnerId"`
+	WinnerIDs []PlayerID  `json:"winnerIds"`
 
 	// LobbyObj is used to pass the mutated lobby back to handlers (omitted from JSON)
 	LobbyObj *Lobby `json:"-"`

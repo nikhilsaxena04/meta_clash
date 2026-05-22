@@ -19,6 +19,8 @@ services:
         value: https://api.jikan.moe/v4
       - key: ALLOWED_ORIGIN
         value: https://meta-clash-frontend.onrender.com
+      - key: GEMINI_API_KEY
+        sync: false
 
   # Next.js Frontend Service
   - type: web

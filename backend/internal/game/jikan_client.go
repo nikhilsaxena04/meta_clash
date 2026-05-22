@@ -1,9 +1,11 @@
 package game
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -18,6 +20,7 @@ import (
 type JikanClient struct {
 	baseURL string
 	client  *http.Client
+	geminiAPIKey string
 	
 	// Simple thread-safe cache: Theme Name -> Deck
 	cacheMu sync.RWMutex
@@ -30,10 +33,11 @@ type cacheEntry struct {
 }
 
 // NewJikanClient creates a new Jikan API client.
-func NewJikanClient(baseURL string, timeout time.Duration) *JikanClient {
+func NewJikanClient(baseURL string, timeout time.Duration, geminiKey string) *JikanClient {
 	return &JikanClient{
 		baseURL: baseURL,
 		client:  &http.Client{Timeout: timeout},
+		geminiAPIKey: geminiKey,
 		cache:   make(map[string]cacheEntry),
 	}
 }
@@ -139,6 +143,14 @@ func (c *JikanClient) fetchFromAPI(theme string) (models.Deck, error) {
 	// Build the deck
 	seen := make(map[string]bool)
 	var deck models.Deck
+	var names []string
+
+	type charInfo struct {
+		Name string
+		Image string
+		Favorites int
+	}
+	var chars []charInfo
 
 	for _, c := range charsResp.Data {
 		name := c.Character.Name
@@ -152,22 +164,33 @@ func (c *JikanClient) fetchFromAPI(theme string) (models.Deck, error) {
 			image = fmt.Sprintf("https://picsum.photos/seed/%s/320/420", url.QueryEscape(name))
 		}
 
-		// Factor in favorites if available, combined with hash for stability
-		baseRank := c.Favorites % 50 
-		stats := generateDeterministicStats(name)
-		// Boost rank based on character popularity
-		stats.Rank = min(99, stats.Rank + baseRank)
+		chars = append(chars, charInfo{Name: name, Image: image, Favorites: c.Favorites})
+		names = append(names, name)
 
-		deck = append(deck, models.Card{
-			ID:    generateCardID(name),
-			Name:  name,
-			Image: image,
-			Stats: stats,
-		})
-
-		if len(deck) >= models.TotalCards {
+		if len(chars) >= models.TotalCards {
 			break
 		}
+	}
+
+	var llmStats map[string]models.Stats
+	if c.geminiAPIKey != "" {
+		llmStats = fetchLLMStats(ctx, theme, names, c.geminiAPIKey)
+	}
+
+	for _, ch := range chars {
+		stats, ok := llmStats[ch.Name]
+		if !ok {
+			baseRank := ch.Favorites % 50 
+			stats = generateDeterministicStats(ch.Name)
+			stats.Rank = min(99, stats.Rank + baseRank)
+		}
+
+		deck = append(deck, models.Card{
+			ID:    generateCardID(ch.Name),
+			Name:  ch.Name,
+			Image: ch.Image,
+			Stats: stats,
+		})
 	}
 
 	if len(deck) < models.TotalCards {
@@ -209,4 +232,86 @@ type jikanCharactersResponse struct {
 			} `json:"images"`
 		} `json:"character"`
 	} `json:"data"`
+}
+
+type geminiPart struct {
+	Text string `json:"text"`
+}
+
+type geminiContent struct {
+	Parts []geminiPart `json:"parts"`
+}
+
+type geminiRequest struct {
+	Contents []geminiContent `json:"contents"`
+	GenerationConfig struct {
+		ResponseMimeType string `json:"response_mime_type"`
+	} `json:"generationConfig"`
+}
+
+type geminiResponse struct {
+	Candidates []struct {
+		Content struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		} `json:"content"`
+	} `json:"candidates"`
+}
+
+func fetchLLMStats(ctx context.Context, theme string, names []string, apiKey string) map[string]models.Stats {
+	prompt := fmt.Sprintf(`Assign lore-accurate power stats for these anime characters from the universe '%s'. 
+Stats must be integers from 1 to 99 for: Rank (overall power), Strength, Speed, IQ.
+Respond ONLY with a JSON object mapping the exact character name to the stats object.
+Example: {"Goku": {"rank": 99, "strength": 99, "speed": 99, "iq": 70}}
+
+Characters:
+%s`, theme, strings.Join(names, "\n"))
+
+	reqBody := geminiRequest{}
+	reqBody.Contents = append(reqBody.Contents, geminiContent{
+		Parts: []geminiPart{{Text: prompt}},
+	})
+	reqBody.GenerationConfig.ResponseMimeType = "application/json"
+
+	b, _ := json.Marshal(reqBody)
+	url := "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + apiKey
+
+	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(b))
+	if err != nil {
+		slog.Error("LLM req creation failed", "err", err)
+		return nil
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		slog.Error("LLM API call failed", "err", err)
+		return nil
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != 200 {
+		slog.Error("LLM API error", "status", resp.StatusCode)
+		return nil
+	}
+
+	var geminiResp geminiResponse
+	if err := json.NewDecoder(resp.Body).Decode(&geminiResp); err != nil {
+		return nil
+	}
+
+	if len(geminiResp.Candidates) == 0 || len(geminiResp.Candidates[0].Content.Parts) == 0 {
+		return nil
+	}
+
+	text := geminiResp.Candidates[0].Content.Parts[0].Text
+	var result map[string]models.Stats
+	if err := json.Unmarshal([]byte(text), &result); err != nil {
+		slog.Error("LLM JSON parse failed", "err", err, "text", text)
+		return nil
+	}
+
+	return result
 }

@@ -23,6 +23,9 @@ type Config struct {
 
 	// Database
 	DatabaseURL string
+
+	// AI
+	GeminiAPIKey string
 }
 
 // Load reads configuration from environment variables with sensible defaults.
@@ -36,6 +39,7 @@ func Load() *Config {
 		JWTSecret:     envStr("JWT_SECRET", "dev-secret-change-in-production"),
 		JWTExpiry:     envDuration("JWT_EXPIRY", 24*time.Hour),
 		DatabaseURL:   envStr("DATABASE_URL", "postgres://postgres:postgres@localhost:5432/meta_clash?sslmode=disable"),
+		GeminiAPIKey:  envStr("GEMINI_API_KEY", ""),
 	}
 }
 

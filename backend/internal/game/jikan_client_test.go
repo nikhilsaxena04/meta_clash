@@ -58,7 +58,7 @@ func TestJikanClient_FetchDeck_Success(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewJikanClient(server.URL, 2*time.Second)
+	client := NewJikanClient(server.URL, 2*time.Second, "")
 
 	// Fetch 1st time (Cache Miss)
 	deck, err := client.FetchDeck("test theme")
@@ -90,7 +90,7 @@ func TestJikanClient_FetchDeck_RateLimit(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := NewJikanClient(server.URL, 1*time.Second)
+	client := NewJikanClient(server.URL, 1*time.Second, "")
 	_, err := client.FetchDeck("naruto")
 	
 	if err == nil {

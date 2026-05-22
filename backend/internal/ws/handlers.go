@@ -169,8 +169,8 @@ func (h *Handlers) handleChooseAttribute(c *Client, msg SocketMessage) {
 	
 	// Broadcast round results
 	h.BroadcastToLobby("roundResult", map[string]interface{}{
-		"attr":     res.Attr,
-		"winnerId": res.WinnerID,
+		"attr":      res.Attr,
+		"winnerIds": res.WinnerIDs,
 		"reveals":  res.Reveals,
 		"lobby":    res.LobbyObj, // Include full updated state too
 	})
@@ -212,8 +212,8 @@ func (h *Handlers) processBotTurns(lobby *models.Lobby, isContinuation bool) {
 		}
 
 		h.BroadcastToLobby("roundResult", map[string]interface{}{
-			"attr":     res.Attr,
-			"winnerId": res.WinnerID,
+			"attr":      res.Attr,
+			"winnerIds": res.WinnerIDs,
 			"reveals":  res.Reveals,
 			"lobby":    res.LobbyObj,
 		})

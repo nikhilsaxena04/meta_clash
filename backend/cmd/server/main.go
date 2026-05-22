@@ -49,7 +49,7 @@ func main() {
 	authHandler := auth.NewAuthHandler(repo, cfg.JWTSecret, cfg.JWTExpiry)
 
 	// ── Game Dependencies ──────────────────────────────────────
-	cardGen := game.NewGenerator(cfg.JikanBaseURL, cfg.JikanTimeout)
+	cardGen := game.NewGenerator(cfg.JikanBaseURL, cfg.JikanTimeout, cfg.GeminiAPIKey)
 	engine := game.NewEngine()
 	store := lobby.NewMemoryStore()
 	manager := lobby.NewManager(store, cardGen, engine, repo)
