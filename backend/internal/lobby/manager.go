@@ -3,6 +3,7 @@ package lobby
 import (
 	"crypto/rand"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/nikhilsaxena04/meta_clash/backend/internal/game"
@@ -27,6 +28,7 @@ func NewManager(store models.LobbyStore, generator models.CardGenerator, engine 
 		userRepo:  userRepo,
 	}
 }
+
 
 // CreateLobby initializes a new lobby with the given theme, generates cards,
 // and adds the host as the first player.
@@ -223,7 +225,7 @@ func (m *Manager) PlayRound(code string, playerID models.PlayerID, attr string) 
 		if err := m.userRepo.SaveMatch(match, mPlayers); err != nil {
 			// In production, we might just log this rather than returning a 500 to the websocket,
 			// but for this MVP, returning the error is fine or we can just ignore it to not crash the game.
-			fmt.Printf("Error saving match history: %v\n", err)
+			slog.Error("Failed to save match history", "err", err, "lobbyId", lobby.ID)
 		}
 	}
 
