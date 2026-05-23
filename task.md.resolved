@@ -1,0 +1,56 @@
+# Meta Clash — Go Backend Migration
+
+## Backend Setup
+- [x] Create directory structure, `go.mod`, install deps
+- [x] Implement `internal/config/config.go`
+- [x] Implement `internal/models/` (card, player, lobby, user)
+
+## Game Logic
+- [x] Implement curated packs: `internal/game/packs/onepiece.go`
+- [x] Implement curated packs: `internal/game/packs/pokemon.go`
+- [x] Implement `internal/game/cards.go` (Jikan + fallback + deterministic stats)
+- [x] Implement `internal/game/engine.go` (deal, resolve, winner)
+- [x] Implement `internal/game/bot.go` (smart attribute selection)
+
+## Lobby Management
+- [x] Implement `internal/lobby/store.go` (in-memory store interface)
+- [x] Implement `internal/lobby/manager.go` (thread-safe CRUD)
+
+## WebSocket Layer
+- [ ] Implement `internal/ws/hub.go`
+- [ ] Implement `internal/ws/client.go`
+- [ ] Implement `internal/ws/handlers.go`
+
+## Auth & Database
+- [ ] Implement `internal/db/postgres.go` (connection + migrations)
+- [ ] Implement `internal/db/queries.go` (user CRUD, match history)
+- [ ] Implement `internal/auth/jwt.go`
+- [ ] Implement `internal/auth/handler.go` (register/login)
+- [ ] Implement `internal/auth/middleware.go`
+
+## Server Entry Point
+- [x] Implement `cmd/server/main.go` (routes, graceful shutdown)
+
+## Middleware
+- [ ] `internal/middleware/logging.go`
+- [ ] `internal/middleware/recovery.go`
+- [ ] `internal/middleware/cors.go`
+
+## Frontend Migration
+- [ ] Move files into `frontend/`
+- [ ] Create `lib/ws.js` (WebSocket wrapper)
+- [ ] Update [pages/index.js](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/pages/index.js) for new WS protocol
+- [ ] Update [pages/game.js](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/pages/game.js) for new WS protocol
+- [ ] Add `pages/login.js`, `pages/register.js`, `pages/profile.js`
+- [ ] Update [next.config.js](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/next.config.js) to proxy to Go backend
+
+## DevOps
+- [ ] `backend/Dockerfile` (multi-stage)
+- [ ] `frontend/Dockerfile` (multi-stage)
+- [ ] `docker-compose.yml` (Go + Next.js + PostgreSQL)
+- [ ] `.github/workflows/ci.yml`
+- [ ] `Makefile`
+
+## Verification
+- [ ] Build and run Go backend
+- [ ] Test full game flow through browser

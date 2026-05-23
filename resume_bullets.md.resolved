@@ -1,0 +1,38 @@
+# Meta Clash — Resume Bullet Points
+
+## Project Header
+
+**Meta Clash** | Go, Next.js, PostgreSQL, WebSocket, Docker, GitHub Actions, JWT
+*2025–2026*
+
+---
+
+## Bullet Points (6)
+
+• Architected a decoupled Go backend with hexagonal design (interfaces for `LobbyStore`, `CardGenerator`, `UserRepository`, `BotStrategy`) and a 3-state lobby FSM (waiting → playing → finished) managing the full lifecycle across 4 concurrent players per session
+
+• Built a real-time WebSocket hub using goroutines, channels, and `sync.RWMutex` with dedicated read/write pumps and a 54-second ping/pong heartbeat cycle, broadcasting state-sync events to all connected clients per lobby
+
+• Engineered a 3-tier card generation pipeline — curated packs, Jikan REST API with thread-safe in-memory LRU cache (100-entry cap, 1-hour TTL), and FNV-1a deterministic hashing — producing 24 cards per session across 4 attributes (Rank, Strength, Speed, IQ)
+
+• Integrated Gemini 2.5 Flash LLM as an optional stat-generation layer, requesting lore-accurate power ratings for anime characters via structured JSON output, with automatic fallback to deterministic FNV hashing on API failure
+
+• Enforced server-authoritative validation on all 4 card attributes and turn order to prevent client-side spoofing, with pluggable bot AI (max-stat strategy) executing asynchronously via goroutines across 6-round matches
+
+• Configured multi-stage Docker builds, Docker Compose orchestration with PostgreSQL health checks, Render.com IaC deployment (`render.yaml`), and a GitHub Actions CI/CD pipeline running `go vet`, race-condition tests (`-race`), and container image builds
+
+---
+
+## What Changed From the Original & Why
+
+| # | Original Claim | Revised Claim | Reason |
+|---|----------------|---------------|--------|
+| 1 | "5 distinct lobby lifecycle states" | **3 states** (`waiting`, `playing`, `finished`) | Code in [lobby.go](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/backend/internal/models/lobby.go#L8-L12) defines exactly 3 `LobbyState` constants. Overstating would fail a technical deep-dive. Added the hexagonal interfaces which are the real architectural strength. |
+| 2 | "<100ms state sync" | Removed latency claim | No benchmarks exist in the codebase to back this number. Replaced with concrete implementation details (goroutines, channels, `sync.RWMutex`, ping/pong) that interviewers can verify. |
+| 3 | "thread-safe hub using sync.RWMutex" | Kept and expanded | Verified in [hub.go](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/backend/internal/ws/hub.go#L21) and [client.go](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/backend/internal/ws/client.go#L116-L147). Added the specific heartbeat math: `pingPeriod = (60s * 9) / 10 = 54s`. |
+| 4 | "3-tier card generation pipeline" | Kept and enriched | Added cache specifics (100-entry cap from [jikan_client.go:69](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/backend/internal/game/jikan_client.go#L69), 1-hour TTL from [line 53](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/backend/internal/game/jikan_client.go#L53)). |
+| 5 | No mention of LLM integration | **New bullet** for Gemini integration | The `fetchLLMStats` function in [jikan_client.go:262-317](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/backend/internal/game/jikan_client.go#L262-L317) is a significant differentiator — calling Gemini 2.5 Flash for lore-accurate stats is unique and interview-worthy. |
+| 6 | "multi-stage Docker builds and GitHub Actions CI/CD" | Expanded with specifics | Added Render.com IaC (`render.yaml`), Docker Compose health checks, and the specific CI steps (`go vet`, `-race` flag) verified from [ci.yml](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/.github/workflows/ci.yml) and [docker-compose.yml](file:///home/nikhil/Documents/Coding/antigravity/meta_clash/docker-compose.yml). |
+
+> [!TIP]
+> Every number in these bullets maps to a line of code. If an interviewer asks "where are those 3 states?", you point to `lobby.go:8-12`. If they ask about the cache cap, you point to `jikan_client.go:69`. This is what makes bullets defensible.
