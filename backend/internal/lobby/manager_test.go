@@ -183,7 +183,8 @@ func TestManager_PlayRound_MatchHistory(t *testing.T) {
 	repo := &mockUserRepo{}
 	mgr := NewManager(store, gen, engine, repo)
 
-	host := models.Player{ID: "p1", Name: "Host"}
+	hostID := "00000000-0000-0000-0000-000000000001"
+	host := models.Player{ID: models.PlayerID(hostID), Name: "Host"}
 	lobby, _ := mgr.CreateLobby("one piece", host)
 	_, _ = mgr.AddBot(lobby.ID)
 
@@ -196,7 +197,7 @@ func TestManager_PlayRound_MatchHistory(t *testing.T) {
 	_ = store.Update(lobby)
 
 	// Play the round
-	updatedLobby, res, err := mgr.PlayRound(lobby.ID, "p1", "strength")
+	updatedLobby, res, err := mgr.PlayRound(lobby.ID, models.PlayerID(hostID), "strength")
 	if err != nil {
 		t.Fatalf("PlayRound failed: %v", err)
 	}
@@ -205,8 +206,8 @@ func TestManager_PlayRound_MatchHistory(t *testing.T) {
 		t.Errorf("expected game to finish, got state %s", updatedLobby.State)
 	}
 
-	if res.WinnerIDs[0] != "p1" {
-		t.Errorf("expected winner to be p1, got %v", res.WinnerIDs)
+	if res.WinnerIDs[0] != models.PlayerID(hostID) {
+		t.Errorf("expected winner to be %s, got %v", hostID, res.WinnerIDs)
 	}
 
 	// Verify SaveMatch was called
@@ -214,11 +215,11 @@ func TestManager_PlayRound_MatchHistory(t *testing.T) {
 		t.Fatal("expected match to be saved, got nil")
 	}
 
-	if repo.savedMatch.LobbyCode != lobby.ID || repo.savedMatch.WinnerID != "p1" {
+	if repo.savedMatch.LobbyCode != lobby.ID || repo.savedMatch.WinnerID != hostID {
 		t.Errorf("incorrect saved match details: %+v", repo.savedMatch)
 	}
 
-	if len(repo.savedPlayers) != 2 || repo.savedPlayers[0].UserID != "p1" || repo.savedPlayers[0].Score != 1 {
+	if len(repo.savedPlayers) != 2 || repo.savedPlayers[0].UserID != hostID || repo.savedPlayers[0].Score != 1 {
 		t.Errorf("incorrect saved match players details: %+v", repo.savedPlayers)
 	}
 }

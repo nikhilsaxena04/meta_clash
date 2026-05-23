@@ -9,6 +9,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased] - 2026-05-23
 
 ### Fixed
+- **Database (Guest & Bot UUID Hotfix)**: Added UUID validation checks to backend match-saving logic (`backend/internal/lobby/manager.go`) to prevent PostgreSQL UUID format errors when storing guest sessions and bot statistics.
+- **Card UI Layout (Mobile Fit)**: Refactored card layout in `frontend/components/Card.js` to use a 2x2 grid for stats and a balanced 50% height split. This prevents attributes from getting cut off on mobile/small screen heights.
 - **Card UI & Responsiveness**: Resolved card attribute clipping issues by adjusting container dimensions and padding ("Strict Boundary" scaling architecture). Fixed the active card scaling issue to ensure it does not obstruct UI text (`frontend/components/Card.js`).
 - **Game UI Layout**: Eliminated the top player's card-profile overlap by implementing dynamic hand fanning (`frontend/components/PlayerSeat.js`).
 - **Game Flow Snapping**: Eliminated UI "snapping" during bot-led round transitions through intelligent 15-second backend delays.
@@ -18,6 +20,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Logging Improvements**: Replaced unstructured print statements (`fmt.Printf`) with structured `slog.Error` calls in `LobbyManager` to capture faulty database writes cleanly in production logs.
 
 ### Added
+- **Dynamic Config (Runtime API Injection)**: Created an API-driven configuration endpoint `/api/config` and wrapper utilities (`frontend/lib/config.js`, `frontend/pages/api/config.js`) to dynamically resolve backend and WebSocket URLs in the browser at runtime using container environment variables, removing hardcoded endpoints.
+- **Central API Request Client**: Created `frontend/lib/api.js` to centralize all REST requests, default headers, bearer token injection, and unified HTTP 401 session clearance.
+- **Environment Templates**: Added a safe, template-driven `.env.example` in the root and `frontend/.env.local` for local development setup.
 - **Unit Testing**: Implemented a comprehensive test suite for `game.Engine` (`backend/internal/game/engine_test.go`) and `lobby.Manager` (`backend/internal/lobby/manager_test.go`) to test round resolution, card dealing, bot execution, and match saving, preventing regression in CI/CD pipelines.
 - **Deployment**: Added Render.com deployment configuration (`render.yaml`) and adjusted the Next.js package build to properly build from the `frontend` subdirectory to resolve Render deployment errors.
 - **Game Assets**: Added high-quality One Piece starter base deck card images (`frontend/public/images/onepiece/`) and a new dynamic favicon (`frontend/public/favicon.svg`).
