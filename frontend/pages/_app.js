@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Script from 'next/script';
 import '../styles/globals.css';
 
 export default function App({ Component, pageProps }) {
@@ -9,6 +10,7 @@ export default function App({ Component, pageProps }) {
         <meta name="description" content="Generate and battle with any character in the universe." />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </Head>
+      <Script src="/api/config" strategy="beforeInteractive" />
       <Component {...pageProps} />
     </>
   );

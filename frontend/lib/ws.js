@@ -1,5 +1,6 @@
 // lib/ws.js - Native WebSocket Wrapper
 import { nanoid } from 'nanoid';
+import { getWsUrl } from './config';
 
 class WSClient {
     constructor() {
@@ -14,7 +15,7 @@ class WSClient {
         if (this.socket || this.connecting || this.connected) return;
         this.connecting = true;
         
-        let wsUrl = process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8080/api/ws';
+        let wsUrl = getWsUrl();
         
         // Append JWT token for authentication if available
         if (typeof window !== 'undefined') {

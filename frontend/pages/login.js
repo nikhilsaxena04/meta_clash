@@ -1,6 +1,7 @@
 // frontend/pages/login.js - PREMIUM GLASS AUTH UI
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { api } from '../lib/api';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -14,18 +15,7 @@ export default function Login() {
     setError('');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${apiUrl}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to login');
-      }
+      const data = await api.post('/api/auth/login', { username, password });
 
       localStorage.setItem('meta_clash_token', data.token);
       localStorage.setItem('meta_clash_user_id', data.user.id);

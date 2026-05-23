@@ -22,22 +22,24 @@ export default function Card({ card, faceDown = false, selected = false, layoutI
         {card && (
           <>
             {/* Image Section */}
-            <div className="h-[60%] w-full relative bg-slate-900">
+            <div className="h-[50%] w-full relative bg-slate-900">
               <img src={card.image} alt={card.name} className="w-full h-full object-cover object-top" />
-              <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-black/80 to-transparent" />
+              <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-black/80 to-transparent" />
             </div>
 
             {/* Stats Section */}
-            <div className="flex-1 bg-black/60 p-1.5 md:p-4 flex flex-col justify-center border-t border-white/10 relative z-20">
-              <div className="font-bold text-white text-[10px] sm:text-base md:text-xl mb-0.5 md:mb-3 truncate drop-shadow-md">{card.name}</div>
+            <div className="flex-1 bg-black/60 p-2 md:p-4 flex flex-col justify-between border-t border-white/10 relative z-20 overflow-hidden">
+              <div className="font-bold text-white text-xs sm:text-base md:text-xl mb-1 truncate drop-shadow-md">{card.name}</div>
               
-              <div className="space-y-1 md:space-y-1.5">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 sm:gap-y-2">
                 {Object.entries(card.stats).map(([k, v]) => (
-                  <div key={k} className="flex justify-between items-center text-xs">
-                    <div className="text-slate-400 uppercase tracking-wider font-bold text-[8px] md:text-[10px]">{k}</div>
-                    <div className="font-mono font-bold text-white text-xs md:text-sm">{Math.floor(v)}</div>
+                  <div key={k} className="flex flex-col justify-center">
+                    <div className="flex justify-between items-center">
+                      <div className="text-slate-400 uppercase tracking-wider font-bold text-[7px] sm:text-[9px] md:text-[11px]">{k}</div>
+                      <div className="font-mono font-bold text-white text-[8px] sm:text-xs md:text-sm">{Math.floor(v)}</div>
+                    </div>
                     {/* Stat Bar */}
-                    <div className="w-12 md:w-20 h-1 md:h-1.5 bg-white/10 rounded-full ml-2 overflow-hidden">
+                    <div className="w-full h-0.5 sm:h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden">
                       <motion.div initial={{ width: 0 }} animate={{ width: `${Math.floor(v)}%` }} transition={{ duration: 1 }} className={`h-full ${selected ? 'bg-yellow-400' : 'bg-purple-500'}`} />
                     </div>
                   </div>

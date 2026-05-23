@@ -1,6 +1,7 @@
 // frontend/pages/profile.js - PREMIUM GLASS UI
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { api } from '../lib/api';
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
@@ -18,26 +19,7 @@ export default function Profile() {
       }
 
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-        const res = await fetch(`${apiUrl}/api/users/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        });
-
-        if (res.status === 401) {
-          localStorage.removeItem('meta_clash_token');
-          localStorage.removeItem('meta_clash_user_id');
-          window.location.href = '/login';
-          return;
-        }
-
-        const data = await res.json();
-        
-        if (!res.ok) {
-          throw new Error(data.error || 'Failed to load profile');
-        }
-
+        const data = await api.get(`/api/users/${userId}`);
         setProfile(data);
       } catch (err) {
         setError(err.message);

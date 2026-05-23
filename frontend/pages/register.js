@@ -1,6 +1,7 @@
 // frontend/pages/register.js - PREMIUM GLASS AUTH UI
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { api } from '../lib/api';
 
 export default function Register() {
   const [username, setUsername] = useState('');
@@ -14,18 +15,7 @@ export default function Register() {
     setError('');
 
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-      const res = await fetch(`${apiUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-      
-      const data = await res.json();
-      
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to register');
-      }
+      await api.post('/api/auth/register', { username, password });
 
       // Automatically redirect to login after successful registration
       window.location.href = '/login';

@@ -194,8 +194,11 @@ func (m *Manager) PlayRound(code string, playerID models.PlayerID, attr string) 
 
 	if lobby.State == models.LobbyStateFinished && m.userRepo != nil {
 		winnerID := ""
-		if lobby.Winner != nil {
+		if lobby.Winner != nil && !lobby.Winner.IsBot {
 			winnerID = string(lobby.Winner.ID)
+		}
+		if !isValidUUID(winnerID) {
+			winnerID = ""
 		}
 		
 		// Use lobby.ID (the code) combined with timestamp to ensure unique match ID
@@ -213,9 +216,13 @@ func (m *Manager) PlayRound(code string, playerID models.PlayerID, attr string) 
 
 		var mPlayers []models.MatchPlayer
 		for _, p := range lobby.Players {
+			userID := string(p.ID)
+			if p.IsBot || !isValidUUID(userID) {
+				userID = ""
+			}
 			mPlayers = append(mPlayers, models.MatchPlayer{
 				MatchID: matchID,
-				UserID:  string(p.ID),
+				UserID:  userID,
 				IsBot:   p.IsBot,
 				Score:   p.Score,
 			})
@@ -280,4 +287,23 @@ func randomShortID() string {
 	b := make([]byte, 3)
 	_, _ = rand.Read(b)
 	return fmt.Sprintf("%x", b)
+}
+
+// isValidUUID validates whether a string matches standard UUID format (36 chars, hex + hyphens).
+func isValidUUID(s string) bool {
+	if len(s) != 36 {
+		return false
+	}
+	for i, c := range s {
+		if i == 8 || i == 13 || i == 18 || i == 23 {
+			if c != '-' {
+				return false
+			}
+		} else {
+			if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+				return false
+			}
+		}
+	}
+	return true
 }
