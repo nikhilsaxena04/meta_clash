@@ -131,14 +131,19 @@ docker compose up --build
 
 This starts all three services (PostgreSQL, backend, frontend) with health checks and dependency ordering.
 
-### Option 3: Deploy to Render.com
+### Option 3: Deploy to Production (Vercel + Railway)
 
-The project includes a `render.yaml` Blueprint that provisions:
-- Go backend web service (Docker)
-- Next.js frontend web service (Docker)
-- Managed PostgreSQL database
+The recommended production architecture eliminates cold-start latency and maximizes Edge CDN performance by splitting the monolith:
 
-Connect the repo to Render and it auto-deploys from the Blueprint.
+**1. Frontend (Vercel)**
+The Next.js app is deployed to Vercel as a 100% static site. 
+- *Gotcha (Docker)*: Do NOT use `output: 'standalone'` in `next.config.js` on Vercel. It breaks Vercel's automated Serverless Function generation.
+- *Gotcha (Env Vars)*: Ensure `.env.local` is not committed. Next.js will merge it at build time and override Vercel Dashboard variables, causing WebSockets to silently connect to `localhost`.
+- *Gotcha (WebSockets)*: Do not include trailing slashes in your API URL. Double-slash URLs (e.g., `//api/ws`) trigger HTTP 301 redirects in Go, which fundamentally breaks browser WebSocket handshakes.
+
+**2. Backend & Database (Railway.app)**
+The Go WebSocket server and PostgreSQL database are hosted in persistent containers on Railway.
+- *Gotcha (CORS)*: Configure Railway's `ALLOWED_ORIGIN` to match your Vercel domain exactly to prevent WebSocket rejection.
 
 ---
 

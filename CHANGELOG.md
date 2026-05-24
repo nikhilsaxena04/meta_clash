@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] - 2026-05-24
+
+### Fixed
+- **Deployment (Vercel Next.js Cache & Environment Variables)**: Resolved a critical deployment bug where Vercel was ignoring production environment variables (`NEXT_PUBLIC_API_URL`) and falling back to `localhost`.
+  - **Root Cause**: An `.env.local` file was accidentally committed to the repository. Next.js natively merges `.env.local` during the build process, causing Vercel to silently override Dashboard variables with hardcoded `localhost` WebSocket endpoints.
+  - **Resolution**: Deleted the overriding variables from `.env.local` and implemented a bulletproof hardcoded URL fallback inside `frontend/lib/config.js` to guarantee production connectivity independent of Vercel cache status.
+- **WebSocket Trailing Slashes**: Implemented automatic trailing-slash stripping (`replace(/\/+$/, '')`) in `frontend/lib/config.js` to prevent double-slash WebSocket URLs (e.g., `//api/ws`). Double-slash URLs trigger HTTP 301 redirects in the Go backend, which natively breaks browser WebSocket handshakes (since WS cannot follow redirects).
+- **Next.js Versioning on Vercel**: Downgraded Next.js from `15.x` to `14.2.15` in `package.json` to prevent runtime Serverless Function crashes (`FUNCTION_INVOCATION_FAILED`). Next.js 15 requires React 19, which caused fatal boot errors when attempting to run on React 18 within Vercel's Edge architecture.
+- **Docker Standalone Builds**: Removed `output: 'standalone'` from `next.config.js`. While necessary for custom Docker deployments (like Render), it actively conflicts with Vercel's automated Serverless Function generation and causes the deployment to crash on execution.
+
+### Changed
+- **Architecture Splitting**: Officially completed the migration away from a monolithic Render deployment. The architecture is now strictly split:
+  - **Frontend**: Hosted purely statically on Vercel Edge Network (100% static HTML/JS, zero serverless functions).
+  - **Backend**: Hosted as a persistent Go Docker container on Railway to entirely eliminate WebSocket cold-start latency.
+
+---
+
 ## [Unreleased] - 2026-05-23
 
 ### Fixed

@@ -11,11 +11,12 @@ export default function Home() {
   const [loadingFact, setLoadingFact] = useState('');
 
   const facts = [
-    "Did you know? The highest possible attribute value is 99.",
-    "Did you know? Our bots use the MaxStat algorithm to pick their best attribute.",
-    "Did you know? The game automatically adapts to the universe theme you type.",
-    "Did you know? 'One Piece' and 'Pokemon' have special hand-curated character stats.",
-    "Did you know? Meta Clash was rebuilt in Go for high-performance concurrent play."
+    "Rule #1: The highest attribute always wins the round. Choose your stats wisely.",
+    "Lore: The Meta Clash Engine weaves infinite universes from a single theme.",
+    "Pro Tip: Every universe has its own unique strengths. Adapt your strategy.",
+    "Did you know? Meta Clash generates unique, balanced cards on the fly using advanced AI.",
+    "Lore: Across the multiverse, champions rise and fall. Will you be a legend?",
+    "Rule #2: Winning rounds deals damage to your opponent. Drain their health to claim victory!"
   ];
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
