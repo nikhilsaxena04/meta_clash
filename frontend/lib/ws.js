@@ -93,11 +93,19 @@ class WSClient {
         const msg = JSON.stringify({ action, reqId, payload });
         
         if (!this.connected) {
-            // Queue simple MVP (if not connected, wait just a bit. production code would maintain a queue)
-            setTimeout(() => {
-                if (this.connected) this.socket.send(msg);
-                else if (callback) callback({ ok: false, err: "Not connected" });
-            }, 1000);
+            // Queue simple MVP: if not connected, wait up to 15s for Render cold starts
+            let retries = 0;
+            const trySend = () => {
+                if (this.connected) {
+                    this.socket.send(msg);
+                } else if (retries < 15) {
+                    retries++;
+                    setTimeout(trySend, 1000);
+                } else if (callback) {
+                    callback({ ok: false, err: "Not connected to server (timeout)" });
+                }
+            };
+            setTimeout(trySend, 1000);
             return;
         }
 

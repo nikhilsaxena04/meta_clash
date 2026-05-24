@@ -52,7 +52,7 @@ export default function Home() {
   useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('lastPlayerName', name); }, [name]);
   useEffect(() => { if (typeof window !== 'undefined') localStorage.setItem('lastTheme', theme); }, [theme]);
 
-  const create = () => wsClient.emit('createLobby', { name, theme }, res => { if (res.ok) setLobby(res.lobby); });
+  const create = () => wsClient.emit('createLobby', { name, theme }, res => { if (res.ok) setLobby(res.lobby); else alert("Error creating lobby: " + (res.err || "Unknown error")); });
   const join = () => { if (!lobby?.id) return alert('Enter ID'); wsClient.emit('joinLobby', { lobbyId: lobby.id, name }, res => { if (res.ok) setLobby(res.lobby); else alert(res.err); }); };
   const addBot = () => wsClient.emit('addBot', { lobbyId: lobby.id }, res => { if (res.ok) setLobby(res.lobby); });
   const start = () => wsClient.emit('startGame', { lobbyId: lobby.id }, res => { if (!res.ok) alert(res.err); });
