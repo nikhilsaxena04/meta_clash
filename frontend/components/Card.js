@@ -31,12 +31,12 @@ export default function Card({ card, faceDown = false, selected = false, layoutI
             <div className="flex-1 bg-black/60 p-2 md:p-4 flex flex-col justify-between border-t border-white/10 relative z-20 overflow-hidden">
               <div className="font-bold text-white text-xs sm:text-base md:text-xl mb-1 truncate drop-shadow-md">{card.name}</div>
               
-              <div className="grid grid-cols-2 gap-x-2 gap-y-1 sm:gap-y-2">
+              <div className="grid grid-cols-2 gap-x-2 gap-y-1 sm:gap-y-2 overflow-hidden">
                 {Object.entries(card.stats).map(([k, v]) => (
-                  <div key={k} className="flex flex-col justify-center">
-                    <div className="flex justify-between items-center">
-                      <div className="text-slate-400 uppercase tracking-wider font-bold text-[7px] sm:text-[9px] md:text-[11px]">{k}</div>
-                      <div className="font-mono font-bold text-white text-[8px] sm:text-xs md:text-sm">{Math.floor(v)}</div>
+                  <div key={k} className="flex flex-col justify-center min-w-0">
+                    <div className="flex justify-between items-center gap-1 min-w-0">
+                      <div className="text-slate-400 uppercase tracking-wider font-bold text-[6px] sm:text-[8px] md:text-[10px] truncate shrink">{k}</div>
+                      <div className="font-mono font-bold text-white text-[7px] sm:text-[10px] md:text-xs shrink-0">{Math.floor(v)}</div>
                     </div>
                     {/* Stat Bar */}
                     <div className="w-full h-0.5 sm:h-1 bg-white/10 rounded-full mt-0.5 overflow-hidden">
