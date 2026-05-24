@@ -49,7 +49,8 @@ func main() {
 	authHandler := auth.NewAuthHandler(repo, cfg.JWTSecret, cfg.JWTExpiry)
 
 	// ── Game Dependencies ──────────────────────────────────────
-	cardGen := game.NewGenerator(cfg.JikanBaseURL, cfg.JikanTimeout, cfg.GeminiAPIKey)
+	superheroClient := game.NewSuperheroClient(cfg.GeminiAPIKey)
+	cardGen := game.NewGenerator(cfg.JikanBaseURL, cfg.JikanTimeout, cfg.GeminiAPIKey, superheroClient)
 	engine := game.NewEngine()
 	store := lobby.NewMemoryStore()
 	manager := lobby.NewManager(store, cardGen, engine, repo)

@@ -11,7 +11,7 @@ import (
 // BenchmarkCreateLobby measures lobby creation with deterministic card generation.
 func BenchmarkCreateLobby(b *testing.B) {
 	store := NewMemoryStore()
-	gen := game.NewGenerator("https://api.jikan.moe/v4", 0, "")
+	gen := game.NewGenerator("https://api.jikan.moe/v4", 0, "", nil)
 	engine := game.NewEngine()
 	mgr := NewManager(store, gen, engine, nil)
 
@@ -25,7 +25,7 @@ func BenchmarkCreateLobby(b *testing.B) {
 
 // BenchmarkLobbyLifecycle measures a full create → join bots → start → play 6 rounds lifecycle.
 func BenchmarkLobbyLifecycle(b *testing.B) {
-	gen := game.NewGenerator("https://api.jikan.moe/v4", 0, "")
+	gen := game.NewGenerator("https://api.jikan.moe/v4", 0, "", nil)
 	engine := game.NewEngine()
 	bot := game.NewMaxStatBot()
 
@@ -60,7 +60,7 @@ func BenchmarkLobbyLifecycle(b *testing.B) {
 // BenchmarkConcurrentLobbies measures parallel lobby creation under contention.
 func BenchmarkConcurrentLobbies(b *testing.B) {
 	store := NewMemoryStore()
-	gen := game.NewGenerator("https://api.jikan.moe/v4", 0, "")
+	gen := game.NewGenerator("https://api.jikan.moe/v4", 0, "", nil)
 	engine := game.NewEngine()
 	mgr := NewManager(store, gen, engine, nil)
 

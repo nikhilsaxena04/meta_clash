@@ -5,6 +5,7 @@ package game
 import (
 	"fmt"
 	"hash/fnv"
+	"log/slog"
 	"math/rand"
 	"net/url"
 	"time"
@@ -13,36 +14,61 @@ import (
 	"github.com/nikhilsaxena04/meta_clash/backend/internal/models"
 )
 
-// Generator implements models.CardGenerator with a 3-tier fallback chain:
-//  1. Jikan API — fetch characters for the given anime theme
-//  2. Curated packs — if theme matches "one piece" or "pokemon"
-//  3. Deterministic hash — generate cards with FNV-based stable stats
+// Generator implements models.CardGenerator with a 5-tier fallback chain:
+//  1. Curated packs — if theme matches a hardcoded pack (One Piece, Pokemon)
+//  2. Jikan API — fetch characters for anime themes
+//  3. Superhero API — fetch characters for Marvel/DC/comics themes
+//  4. Gemini full-generation — AI generates names + stats for any universe
+//  5. Deterministic hash — generate placeholder cards with FNV-based stable stats
 type Generator struct {
-	jikanClient *JikanClient
+	jikanClient     *JikanClient
+	superheroClient *SuperheroClient
+	geminiAPIKey    string
 }
 
-// NewGenerator creates a CardGenerator with the given Jikan API base URL and timeout.
-func NewGenerator(jikanBaseURL string, timeout time.Duration, geminiAPIKey string) *Generator {
+// NewGenerator creates a CardGenerator with the given API clients.
+func NewGenerator(jikanBaseURL string, timeout time.Duration, geminiAPIKey string, superheroClient *SuperheroClient) *Generator {
 	return &Generator{
-		jikanClient: NewJikanClient(jikanBaseURL, timeout, geminiAPIKey),
+		jikanClient:     NewJikanClient(jikanBaseURL, timeout, geminiAPIKey),
+		superheroClient: superheroClient,
+		geminiAPIKey:    geminiAPIKey,
 	}
 }
 
 // Generate produces a full deck of TotalCards cards for the given theme.
-// Fallback chain: Curated pack → Jikan API → deterministic hash generation.
+// Fallback chain: Curated pack → Jikan API → Superhero API → Gemini → deterministic hash.
 func (g *Generator) Generate(theme string) (models.Deck, models.CardSource, error) {
 	// Tier 1: Check curated packs
 	if pack, ok := g.matchPack(theme); ok {
 		return pack, models.CardSourcePack, nil
 	}
 
-	// Tier 2: Try Jikan API (includes caching)
+	// Tier 2: Try Jikan API for anime (includes caching)
 	deck, err := g.jikanClient.FetchDeck(theme)
 	if err == nil && len(deck) >= models.TotalCards {
 		return deck[:models.TotalCards], models.CardSourceJikan, nil
 	}
 
-	// Tier 3: Deterministic hash-based generation
+	// Tier 3: Try Superhero API for Marvel/DC/comics
+	if g.superheroClient != nil {
+		deck, err = g.superheroClient.FetchDeck(theme)
+		if err == nil && len(deck) >= models.TotalCards {
+			return deck[:models.TotalCards], models.CardSourceSuperhero, nil
+		}
+	}
+
+	// Tier 4: Gemini full-generation for any universe
+	if g.geminiAPIKey != "" {
+		deck, err = fetchGeminiFullDeck(theme, g.geminiAPIKey)
+		if err == nil && len(deck) >= models.TotalCards {
+			return deck[:models.TotalCards], models.CardSourceGemini, nil
+		}
+		if err != nil {
+			slog.Warn("gemini full-gen failed, falling back to deterministic", "theme", theme, "err", err)
+		}
+	}
+
+	// Tier 5: Deterministic hash-based generation (last resort)
 	deck = g.generateDeterministic(theme)
 	return deck, models.CardSourceGenerate, nil
 }

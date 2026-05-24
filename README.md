@@ -1,6 +1,6 @@
 # Meta Clash ⚔️
 
-A real-time, multiplayer anime card battling game with deterministic stat generation, live WebSocket lobbies, and a server-authoritative game engine. Built with a **Go** backend and a **Next.js / React** frontend.
+A real-time, multiplayer card battling game supporting any fictional universe — anime, Marvel, DC, and beyond. Features a 5-tier card generation pipeline, live WebSocket lobbies, and a server-authoritative game engine. Built with a **Go** backend and a **Next.js / React** frontend.
 
 ---
 
@@ -15,10 +15,12 @@ meta_clash/
 │       ├── config/                 # 12-factor env config (zero external deps)
 │       ├── db/                     # PostgreSQL connection pool, auto-migrations, repository
 │       ├── game/
-│       │   ├── cards.go            # 3-tier card generator (packs → Jikan API → FNV-1a hash)
+│       │   ├── cards.go            # 5-tier card generator (packs → Jikan → Superhero API → Gemini → hash)
 │       │   ├── engine.go           # Deal, ResolveRound, DetermineWinner
 │       │   ├── bot.go              # MaxStatBot AI strategy (pluggable via BotStrategy interface)
 │       │   ├── jikan_client.go     # Jikan REST client + Gemini LLM stat generation + LRU cache
+│       │   ├── superhero_client.go # Superhero API client (700+ Marvel/DC characters, CDN-cached)
+│       │   ├── gemini_generator.go # Gemini full-generation fallback (any universe)
 │       │   └── packs/              # Curated starter decks (One Piece, Pokémon)
 │       ├── lobby/                  # LobbyManager, in-memory LobbyStore, player matching
 │       ├── middleware/             # Recovery, CORS, structured logging (slog)
@@ -43,11 +45,12 @@ meta_clash/
 - **Deterministic Combat**: Round resolution compares a chosen attribute across all players' top cards. Winner advances; ties are handled.
 - **Anti-Cheat**: All 4 attributes (Rank, Strength, Speed, IQ) and turn order are validated on the server. No client-side stat manipulation is possible.
 
-### 🃏 3-Tier Card Generation Pipeline
+### 🃏 5-Tier Card Generation Pipeline
 1. **Curated Packs** — hand-crafted decks for One Piece and Pokémon themes.
 2. **Jikan API** — fetches real anime characters with images; thread-safe in-memory cache (100-entry cap, 1-hour TTL).
-3. **FNV-1a Deterministic Hashing** — guaranteed fallback producing stable stats from character name + attribute seed.
-4. **Gemini LLM (Optional)** — lore-accurate power ratings via Gemini 2.5 Flash, with automatic fallback to deterministic hashing on failure.
+3. **Superhero API** — 700+ Marvel/DC characters from the akabab CDN with native powerstats and artwork. Filters by publisher, team affiliation (Avengers, Justice League, X-Men), and fuzzy name matching. No API key required.
+4. **Gemini Full-Generation** — universal fallback for any fictional universe (Harry Potter, Star Wars, Lord of the Rings). Gemini 2.5 Flash generates 24 character names with lore-accurate stats.
+5. **FNV-1a Deterministic Hashing** — guaranteed last-resort fallback producing stable stats from character name + attribute seed.
 
 ### 📡 Real-Time Multiplayer
 - **WebSocket Hub**: Central dispatch loop using Go channels and goroutines for concurrent client management.

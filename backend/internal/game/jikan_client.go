@@ -260,7 +260,7 @@ type geminiResponse struct {
 }
 
 func fetchLLMStats(ctx context.Context, theme string, names []string, apiKey string) map[string]models.Stats {
-	prompt := fmt.Sprintf(`Assign lore-accurate power stats for these anime characters from the universe '%s'. 
+	prompt := fmt.Sprintf(`Assign lore-accurate power stats for these characters from the universe '%s'. 
 Stats must be integers from 1 to 99 for: Rank (overall power), Strength, Speed, IQ.
 Respond ONLY with a JSON object mapping the exact character name to the stats object.
 Example: {"Goku": {"rank": 99, "strength": 99, "speed": 99, "iq": 70}}

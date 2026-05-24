@@ -19,6 +19,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **GitHub Language Detection**: Fixed GitHub Linguist incorrectly identifying the repository as 100% HTML by ignoring the `graphify-out` directory in a new `.gitattributes` file.
 
 ### Added
+- **Multi-Universe Card Generation (5-Tier Resolver)**: Extended the card generation pipeline from anime-only to any fictional universe. New tiers:
+  - **Superhero API** (`superhero_client.go`): Fetches 700+ Marvel/DC characters from the akabab CDN (free, no API key). Filters by publisher, team affiliation, and fuzzy name matching. Maps native powerstats (intelligence, strength, speed, etc.) directly to game attributes.
+  - **Gemini Full-Generation** (`gemini_generator.go`): Universal fallback — asks Gemini 2.5 Flash to produce 24 character names + lore-accurate stats for any theme (Harry Potter, Star Wars, Lord of the Rings, etc.).
+  - Full chain: Curated Packs → Jikan API → Superhero API → Gemini Full-Gen → Deterministic Hash.
 - **Comprehensive Gitignore**: Expanded `.gitignore` to properly exclude frontend build artifacts (`.next/`, `out/`), backend Go binaries, local `.env` files, OS specific files, and agent tooling directories (`.gemini/`, `.cursor/`, etc.).
 
 ### Changed
@@ -74,9 +78,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Server**: Updated `cmd/server/main.go` to wire PostgreSQL, Auth endpoints, and HTTP middleware together.
 - **Frontend Migration (Phase 2)**: Moved all Next.js code to `frontend/`. Implemented premium glassmorphism Auth UI (`login.js`, `register.js`, `profile.js`). Updated `ws.js` and `index.js` to securely pass JWT tokens.
 
-### Pending (Next Actions)
-- **Project Complete!**: All 4 migration phases are finished. The system is fully production-ready.
-- Future enhancements (Optional):
-  - Migrate in-memory `LobbyStore` to Redis for horizontal scalability.
-  - Add game sound effects and more robust animations to the React frontend.
-  - Deploy to AWS/GCP using the provided Docker containers.
+### Pending (Future Enhancements)
+- Migrate in-memory `LobbyStore` to Redis for horizontal scalability.
+- AI-generated character images for the Gemini full-generation fallback path.
+- Add game sound effects and more robust animations to the React frontend.
+- Deploy to AWS/GCP using the provided Docker containers.

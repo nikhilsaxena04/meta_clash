@@ -94,7 +94,7 @@ export default function Home() {
               <h1 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-tight leading-tight">
                 META<br/>CLASH
               </h1>
-              <p className="text-slate-400 text-lg mt-2 font-light tracking-wide">Generate. Battle. Conquer.</p>
+              <p className="text-slate-400 text-lg mt-2 font-light tracking-wide">Any Universe. Any Hero. One Arena.</p>
             </div>
             
             <div className="flex flex-col items-end gap-2">
@@ -123,7 +123,7 @@ export default function Home() {
             
             <div className="space-y-2">
               <label className="text-xs font-bold text-purple-300 uppercase tracking-widest ml-1">Universe Theme</label>
-              <input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. Naruto, Bleach, Sports" className="glass-input w-full p-4 rounded-xl text-lg font-medium placeholder-slate-600 focus:ring-2 focus:ring-purple-500/50" />
+              <input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. Naruto, Avengers, Justice League, Star Wars" className="glass-input w-full p-4 rounded-xl text-lg font-medium placeholder-slate-600 focus:ring-2 focus:ring-purple-500/50" />
             </div>
           </div>
 

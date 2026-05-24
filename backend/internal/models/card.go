@@ -55,9 +55,11 @@ type Card struct {
 type CardSource string
 
 const (
-	CardSourceJikan    CardSource = "jikan"    // External Jikan API
-	CardSourcePack     CardSource = "pack"     // Curated fallback pack
-	CardSourceGenerate CardSource = "generate" // Deterministic hash-based generation
+	CardSourceJikan     CardSource = "jikan"     // External Jikan API (anime)
+	CardSourcePack      CardSource = "pack"      // Curated fallback pack
+	CardSourceSuperhero CardSource = "superhero" // Superhero API (Marvel/DC/comics)
+	CardSourceGemini    CardSource = "gemini"    // Gemini AI full generation (any universe)
+	CardSourceGenerate  CardSource = "generate"  // Deterministic hash-based generation (last resort)
 )
 
 // Deck is an ordered collection of cards used in a game session.
