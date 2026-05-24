@@ -68,8 +68,13 @@ func (h *Handlers) handleCreateLobby(c *Client, msg SocketMessage) {
 		return
 	}
 
+	playerID := "p_" + msg.ReqID
+	if c.UserID != "" {
+		playerID = c.UserID
+	}
+
 	host := models.Player{
-		ID:   models.PlayerID("p_" + msg.ReqID), // Simple fake ID for now
+		ID:   models.PlayerID(playerID),
 		Name: req.Name,
 	}
 
@@ -92,8 +97,13 @@ func (h *Handlers) handleJoinLobby(c *Client, msg SocketMessage) {
 		return
 	}
 
+	playerID := "p_" + msg.ReqID
+	if c.UserID != "" {
+		playerID = c.UserID
+	}
+
 	p := models.Player{
-		ID:   models.PlayerID("p_" + msg.ReqID),
+		ID:   models.PlayerID(playerID),
 		Name: req.Name,
 	}
 

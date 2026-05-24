@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/nikhilsaxena04/meta_clash/backend/internal/auth"
 )
 
 const (
@@ -42,6 +43,9 @@ type Client struct {
 
 	// Reference to the global handlers instance
 	handlers *Handlers
+
+	// The authenticated user's ID, or empty for guests.
+	UserID string
 }
 
 // SocketMessage defines the generic format for requests from frontend
@@ -153,7 +157,17 @@ func ServeWs(hub *Hub, handlers *Handlers, w http.ResponseWriter, r *http.Reques
 		slog.Error("WS Upgrade error", "error", err)
 		return
 	}
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), handlers: handlers}
+	
+	// Extract user ID if the client is authenticated
+	userID := auth.UserIDFromContext(r.Context())
+
+	client := &Client{
+		hub:      hub,
+		conn:     conn,
+		send:     make(chan []byte, 256),
+		handlers: handlers,
+		UserID:   userID,
+	}
 	client.hub.register <- client
 
 	// Allow collection of memory referenced by the caller by doing all work in
