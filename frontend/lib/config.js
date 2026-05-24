@@ -4,7 +4,13 @@ export const getApiUrl = () => {
   if (typeof window !== 'undefined' && window.__ENV__?.NEXT_PUBLIC_API_URL) {
     return window.__ENV__.NEXT_PUBLIC_API_URL;
   }
-  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    return process.env.NEXT_PUBLIC_API_URL;
+  }
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:8080';
+  }
+  return 'https://meta-clash-backend-production-dc99.up.railway.app';
 };
 
 export const getWsUrl = () => {
