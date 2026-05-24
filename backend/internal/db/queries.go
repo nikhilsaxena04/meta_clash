@@ -108,7 +108,7 @@ func (r *PostgresRepo) SaveMatch(match *models.Match, players []models.MatchPlay
 func (r *PostgresRepo) GetMatchHistory(userID string, limit int) ([]models.MatchSummary, error) {
 	rows, err := r.db.Query(
 		`SELECT m.id, m.theme, mp.score,
-		        (m.winner_id = $1) AS won,
+		        COALESCE(m.winner_id = $1, false) AS won,
 		        m.finished_at
 		 FROM matches m
 		 JOIN match_players mp ON mp.match_id = m.id
