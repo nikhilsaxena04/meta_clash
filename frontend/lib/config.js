@@ -15,7 +15,7 @@ export const getWsUrl = () => {
     return process.env.NEXT_PUBLIC_WS_URL;
   }
   
-  const apiUrl = getApiUrl();
+  const apiUrl = getApiUrl().replace(/\/+$/, '');
   if (apiUrl.startsWith('https://')) {
     return apiUrl.replace('https://', 'wss://') + '/api/ws';
   } else if (apiUrl.startsWith('http://')) {
