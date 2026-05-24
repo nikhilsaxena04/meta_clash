@@ -10,7 +10,6 @@ export default function App({ Component, pageProps }) {
         <meta name="description" content="Generate and battle with any character in the universe." />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
       </Head>
-      <Script src="/api/config" strategy="beforeInteractive" />
       <Component {...pageProps} />
     </>
   );
