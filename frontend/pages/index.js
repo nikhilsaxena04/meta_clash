@@ -86,12 +86,12 @@ export default function Home() {
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }} 
         animate={{ opacity: 1, scale: 1 }} 
-        className="glass-panel w-full max-w-5xl rounded-3xl p-8 md:p-12 relative z-10 grid md:grid-cols-2 gap-16 items-start"
+        className="glass-panel w-full max-w-5xl rounded-3xl p-8 md:p-12 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-16 items-start"
       >
         <div className="space-y-10">
-          <div className="flex justify-between items-start">
+          <div className="flex flex-wrap justify-between items-start gap-6">
             <div>
-              <h1 className="text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-tight leading-tight">
+              <h1 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-tight leading-tight">
                 META<br/>CLASH
               </h1>
               <p className="text-slate-400 text-lg mt-2 font-light tracking-wide">Generate. Battle. Conquer.</p>

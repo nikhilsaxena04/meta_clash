@@ -15,11 +15,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **WebSocket Trailing Slashes**: Implemented automatic trailing-slash stripping (`replace(/\/+$/, '')`) in `frontend/lib/config.js` to prevent double-slash WebSocket URLs (e.g., `//api/ws`). Double-slash URLs trigger HTTP 301 redirects in the Go backend, which natively breaks browser WebSocket handshakes (since WS cannot follow redirects).
 - **Next.js Versioning on Vercel**: Downgraded Next.js from `15.x` to `14.2.15` in `package.json` to prevent runtime Serverless Function crashes (`FUNCTION_INVOCATION_FAILED`). Next.js 15 requires React 19, which caused fatal boot errors when attempting to run on React 18 within Vercel's Edge architecture.
 - **Docker Standalone Builds**: Removed `output: 'standalone'` from `next.config.js`. While necessary for custom Docker deployments (like Render), it actively conflicts with Vercel's automated Serverless Function generation and causes the deployment to crash on execution.
+- **Match History Tracking (WebSocket Auth)**: Fixed a bug where match statistics were not being linked to user profiles at the end of a game. Extracted the authenticated `UserID` from the JWT token via HTTP context in `backend/internal/ws/client.go` and applied it to in-game Player objects (`backend/internal/ws/handlers.go`), enabling correct tracking of wins and losses.
+- **GitHub Language Detection**: Fixed GitHub Linguist incorrectly identifying the repository as 100% HTML by ignoring the `graphify-out` directory in a new `.gitattributes` file.
+
+### Added
+- **Comprehensive Gitignore**: Expanded `.gitignore` to properly exclude frontend build artifacts (`.next/`, `out/`), backend Go binaries, local `.env` files, OS specific files, and agent tooling directories (`.gemini/`, `.cursor/`, etc.).
 
 ### Changed
 - **Architecture Splitting**: Officially completed the migration away from a monolithic Render deployment. The architecture is now strictly split:
   - **Frontend**: Hosted purely statically on Vercel Edge Network (100% static HTML/JS, zero serverless functions).
   - **Backend**: Hosted as a persistent Go Docker container on Railway to entirely eliminate WebSocket cold-start latency.
+- **Loading Screen UI**: Replaced development-centric loading screen facts (e.g., Go backend references) with immersive lore, gameplay rules, and "multiverse" world-building text to improve player experience (`frontend/pages/index.js`).
 
 ---
 
