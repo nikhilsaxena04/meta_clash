@@ -1,6 +1,6 @@
 # Meta Clash ⚔️
 
-A real-time, multiplayer card battling game supporting any fictional universe — anime, Marvel, DC, and beyond. Features a 5-tier card generation pipeline, live WebSocket lobbies, and a server-authoritative game engine. Built with a **Go** backend and a **Next.js / React** frontend.
+A real-time, multiplayer anime card battling game with deterministic stat generation, live WebSocket lobbies, and a server-authoritative game engine. Built with a **Go** backend and a **Next.js / React** frontend. The core focus is anime, with experimental fallback support for extended universes (Marvel, DC, etc.).
 
 ---
 
