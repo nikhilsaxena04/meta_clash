@@ -79,9 +79,12 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <div className="bg-premium" />
-      <div className="bg-orb w-96 h-96 bg-purple-600 top-10 left-10 opacity-30" />
-      <div className="bg-orb w-80 h-80 bg-blue-600 bottom-20 right-20 animation-delay-2000 opacity-30" />
+      <div className="bg-synthwave">
+        <div className="synthwave-stars" />
+        <div className="synthwave-sun" />
+        <div className="synthwave-horizon" />
+        <div className="synthwave-grid" />
+      </div>
 
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }} 
