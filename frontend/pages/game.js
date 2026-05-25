@@ -119,7 +119,7 @@ export default function Game() {
                 <div className="glass-panel p-16 rounded-3xl text-center relative z-10 border border-yellow-500/30 shadow-[0_0_100px_rgba(234,179,8,0.2)]">
                     <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-yellow-600 mb-6 drop-shadow-xl">VICTORY</h1>
                     <div className="text-4xl font-bold text-white mb-4">🏆 {lobby.winner.name} 🏆</div>
-                    <div className="text-xl text-yellow-200/80 font-mono tracking-widest mb-10">WINS: {lobby.winner.totalWins} / 6</div>
+                    <div className="text-xl text-yellow-200/80 font-mono tracking-widest mb-10">WINS: {lobby.winner.score || 0} / 6</div>
                     <button onClick={() => window.location.href = '/'} className="px-8 py-4 bg-white text-black font-black tracking-widest rounded-full hover:scale-105 transition-transform shadow-xl cursor-pointer pointer-events-auto">PLAY AGAIN</button>
                 </div>
             </div>

@@ -33,10 +33,10 @@ export default function PlayerSeat({ player, position, isTurn }) {
                {player.name}
                {player.isBot && <span className="text-[8px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded border border-yellow-500/20">BOT</span>}
             </div>
-            <div className="text-base md:text-lg font-black text-indigo-300">{player.totalWins}</div>
+            <div className="text-base md:text-lg font-black text-indigo-300">{player.score || 0}</div>
           </div>
           <div className="h-1 bg-black/50 rounded-full overflow-hidden relative z-10">
-            <div style={{ width: `${(player.totalWins / 6) * 100}%` }} className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500" />
+            <div style={{ width: `${((player.score || 0) / 6) * 100}%` }} className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500" />
           </div>
         </div>
 
