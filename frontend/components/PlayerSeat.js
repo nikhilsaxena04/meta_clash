@@ -11,7 +11,7 @@ export default function PlayerSeat({ player, position, isTurn }) {
     right: 'flex-col-reverse'
   }[position] || 'flex-col';
 
-  // Fallback to array length if hand is hidden (remote players might just have a length)
+  // Fallback to array length if hand is hidden (remote players might just have a  length)
   const cardCount = player.hand ? player.hand.length : 0;
   
   const originClass = {
