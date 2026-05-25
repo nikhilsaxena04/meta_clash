@@ -113,7 +113,7 @@ export default function Game() {
 
     if (lobby.state === 'finished' && lobby.winner) {
         const iWon = lobby.winner.name === name;
-        const resultText = iWon ? "VICTORY" : "DEFEAT";
+        const resultText = iWon ? "VICTORY" : `${lobby.winner.name.toUpperCase()} WINS`;
         const resultColor = iWon ? "from-yellow-300 to-yellow-600" : "from-red-500 to-red-800";
         const borderColor = iWon ? "border-yellow-500/30 shadow-[0_0_100px_rgba(234,179,8,0.2)]" : "border-red-500/30 shadow-[0_0_100px_rgba(239,68,68,0.2)]";
         const icon = iWon ? "🏆" : "💀";
@@ -124,8 +124,8 @@ export default function Game() {
                 <div className="bg-arena pointer-events-none" />
                 <div className="hex-grid pointer-events-none" />
                 <div className={`glass-panel p-16 rounded-3xl text-center relative z-10 border ${borderColor}`}>
-                    <h1 className={`text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br ${resultColor} mb-6 drop-shadow-xl`}>{resultText}</h1>
-                    <div className="text-4xl font-bold text-white mb-4">{icon} {lobby.winner.name} {icon}</div>
+                    <h1 className={`text-5xl md:text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br ${resultColor} mb-6 drop-shadow-xl uppercase`}>{resultText}</h1>
+                    <div className="text-3xl md:text-4xl font-bold text-white mb-4">{icon} {lobby.winner.name} {icon}</div>
                     <div className={`text-xl ${textColor} font-mono tracking-widest mb-10`}>WINS: {lobby.winner.score || 0} / 6</div>
                     <button onClick={() => window.location.href = '/'} className="px-8 py-4 bg-white text-black font-black tracking-widest rounded-full hover:scale-105 transition-transform shadow-xl cursor-pointer pointer-events-auto">PLAY AGAIN</button>
                 </div>
@@ -216,7 +216,7 @@ export default function Game() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="absolute inset-0 flex flex-col items-center justify-center z-40 pointer-events-none"
+                            className="absolute top-[140px] bottom-[140px] left-[100px] right-[100px] md:top-[200px] md:bottom-[200px] md:left-[260px] md:right-[260px] flex flex-col items-center justify-center z-40 pointer-events-none"
                         >
                             <div className="absolute -top-[80px] md:-top-[100px] text-center bg-black/40 backdrop-blur-md px-6 py-3 md:px-8 md:py-4 rounded-3xl border border-white/10 shadow-2xl z-50 whitespace-nowrap">
                                 <h2 className={`text-2xl md:text-3xl font-black uppercase tracking-tighter ${isMyTurn ? 'text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]' : 'text-slate-500'}`}>{isMyTurn ? "YOUR TURN" : `${lobby.players[lobby.currentPlayerIndex]?.name}'s Turn`}</h2>
@@ -246,53 +246,41 @@ export default function Game() {
                     )}
                 </AnimatePresence>
 
-                {/* Center Table Arena (Scaled 3x3 Diamond Grid) */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center z-20 pointer-events-none overflow-hidden">
+                {/* Center Table Arena (Horizontal Row) */}
+                <div className="absolute top-[140px] bottom-[140px] left-[100px] right-[100px] md:top-[200px] md:bottom-[200px] md:left-[260px] md:right-[260px] flex flex-col items-center justify-center z-20 pointer-events-none">
+                    {/* Battle Arena Cards */}
                     {tableCards.length > 0 && (
-                        <div className={`transition-all duration-1000 ease-in-out scale-[0.55] sm:scale-75 md:scale-90 lg:scale-100 ${animState === 'SWEEPING' ? 'scale-50 opacity-0' : 'opacity-100'}`}>
-                            <div className="grid grid-cols-3 grid-rows-3 gap-2 sm:gap-4 md:gap-6 justify-items-center items-center">
-                                {tableCards.map((card, i) => {
-                                    if (!card) return null;
-                                    const p = lobby.players[i];
-                                    const isWinner = roundData.winnerIds && roundData.winnerIds.includes(p.id);
-                                    const isFaceDown = animState === 'PLAYING_CARDS';
-                                    const layoutId = card.id ? `card-${card.id}` : `card-hidden-${p.id}-0`;
+                        <div className={`flex flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 md:gap-6 transition-all duration-1000 ease-in-out ${animState === 'SWEEPING' ? 'scale-50 opacity-0' : 'scale-100 opacity-100'}`}>
+                            {tableCards.map((card, i) => {
+                                if (!card) return null;
+                                const p = lobby.players[i];
+                                const isWinner = roundData.winnerIds && roundData.winnerIds.includes(p.id);
+                                const isFaceDown = animState === 'PLAYING_CARDS';
+                                const layoutId = card.id ? `card-${card.id}` : `card-hidden-${p.id}-0`;
 
-                                    // Determine where this player is sitting
-                                    const sortedIndex = sortedPlayers.findIndex(sp => sp.id === p.id);
-                                    const pos = posMap[sortedIndex];
-
-                                    // Map seat to the 3x3 grid
-                                    let gridArea = 'col-start-2 row-start-2';
-                                    if (pos === 'top') gridArea = 'col-start-2 row-start-1';
-                                    if (pos === 'left') gridArea = 'col-start-1 row-start-2';
-                                    if (pos === 'right') gridArea = 'col-start-3 row-start-2';
-                                    if (pos === 'bottom') gridArea = 'col-start-2 row-start-3';
-
-                                    return (
-                                        <div key={i} className={`relative flex flex-col items-center ${gridArea}`}>
-                                            <span className="absolute -top-6 text-[10px] md:text-xs font-black text-slate-400 tracking-widest">{p.name}</span>
-                                            <div className="shadow-2xl">
-                                                <Card 
-                                                    card={card} 
-                                                    faceDown={isFaceDown} 
-                                                    selected={animState === 'EVALUATING' && isWinner} 
-                                                    layoutId={layoutId} 
-                                                />
-                                            </div>
-                                            {animState === 'EVALUATING' && (
-                                                <motion.div 
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    className={`absolute -bottom-8 px-4 py-1 rounded-full text-xs font-black tracking-widest z-40 ${isWinner ? 'bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)]' : 'bg-slate-800 text-slate-400'}`}
-                                                >
-                                                    {card.stats[roundData.attr]} {roundData.attr}
-                                                </motion.div>
-                                            )}
+                                return (
+                                    <div key={i} className={`relative flex flex-col items-center`}>
+                                        <span className="absolute -top-6 text-[10px] md:text-xs font-black text-slate-400 tracking-widest">{p.name}</span>
+                                        <div className="scale-75 md:scale-90 shadow-2xl">
+                                            <Card 
+                                                card={card} 
+                                                faceDown={isFaceDown} 
+                                                selected={animState === 'EVALUATING' && isWinner} 
+                                                layoutId={layoutId} 
+                                            />
                                         </div>
-                                    );
-                                })}
-                            </div>
+                                        {animState === 'EVALUATING' && (
+                                            <motion.div 
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className={`absolute -bottom-8 px-4 py-1 rounded-full text-xs font-black tracking-widest z-40 ${isWinner ? 'bg-yellow-400 text-black shadow-[0_0_20px_rgba(250,204,21,0.5)]' : 'bg-slate-800 text-slate-400'}`}
+                                            >
+                                                {card.stats[roundData.attr]} {roundData.attr}
+                                            </motion.div>
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </div>
