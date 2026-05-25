@@ -101,12 +101,21 @@ export default function Game() {
         if (lobby && lobby.state !== 'playing' && lobby.state !== 'finished') { window.location.href = '/'; }
     }, [lobby]);
 
-    if (!lobby || lobby.state === 'waiting') return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-white font-bold tracking-widest animate-pulse select-none">CONNECTING...</div>;
+    if (!lobby || lobby.state === 'waiting') {
+        return (
+            <div className="min-h-screen bg-black flex items-center justify-center text-white font-bold tracking-widest animate-pulse select-none overflow-hidden relative">
+                <div className="bg-arena pointer-events-none" />
+                <div className="hex-grid pointer-events-none" />
+                <span className="z-10">CONNECTING...</span>
+            </div>
+        );
+    }
 
     if (lobby.state === 'finished' && lobby.winner) {
         return (
-            <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center relative overflow-hidden font-sans select-none">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-900/40 via-black to-black z-0" />
+            <div className="min-h-screen bg-black flex flex-col items-center justify-center relative overflow-hidden font-sans select-none">
+                <div className="bg-arena pointer-events-none" />
+                <div className="hex-grid pointer-events-none" />
                 <div className="glass-panel p-16 rounded-3xl text-center relative z-10 border border-yellow-500/30 shadow-[0_0_100px_rgba(234,179,8,0.2)]">
                     <h1 className="text-7xl font-black text-transparent bg-clip-text bg-gradient-to-br from-yellow-300 to-yellow-600 mb-6 drop-shadow-xl">VICTORY</h1>
                     <div className="text-4xl font-bold text-white mb-4">🏆 {lobby.winner.name} 🏆</div>
@@ -150,9 +159,18 @@ export default function Game() {
 
     return (
         <LayoutGroup>
-            <div className="min-h-screen bg-slate-950 p-6 flex flex-col font-sans overflow-hidden relative select-none">
+            <div className="min-h-screen p-6 flex flex-col font-sans overflow-hidden relative select-none">
                 {/* Background Felt/Gradient */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-900 via-indigo-950 to-slate-950 z-0 pointer-events-none" />
+                <div className="bg-arena pointer-events-none" />
+                <div className="hex-grid pointer-events-none" />
+                
+                {/* Central Arena Zone Frame */}
+                <div className="absolute top-[140px] bottom-[140px] left-[100px] right-[100px] md:top-[200px] md:bottom-[200px] md:left-[260px] md:right-[260px] z-10 pointer-events-none arena-zone">
+                    <div className="arena-corner top-left" />
+                    <div className="arena-corner top-right" />
+                    <div className="arena-corner bottom-left" />
+                    <div className="arena-corner bottom-right" />
+                </div>
 
                 {/* Header */}
                 <header className="flex justify-between items-center p-4 z-20 absolute top-4 left-4 right-4 pointer-events-none">
@@ -191,11 +209,11 @@ export default function Game() {
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             transition={{ duration: 0.6, ease: "easeOut" }}
-                            className="absolute top-[100px] bottom-[120px] left-[60px] right-[60px] md:top-[160px] md:bottom-[200px] md:left-[240px] md:right-[240px] flex flex-col items-center justify-center z-40 pointer-events-none"
+                            className="absolute top-[140px] bottom-[140px] left-[100px] right-[100px] md:top-[200px] md:bottom-[200px] md:left-[260px] md:right-[260px] flex flex-col items-center justify-center z-40 pointer-events-none"
                         >
-                            <div className="mb-2 md:mb-4 text-center bg-black/40 backdrop-blur-md px-6 py-3 md:px-8 md:py-4 rounded-3xl border border-white/10 shadow-2xl">
-                                <h2 className={`text-2xl md:text-4xl font-black uppercase tracking-tighter ${isMyTurn ? 'text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]' : 'text-slate-500'}`}>{isMyTurn ? "YOUR TURN" : `${lobby.players[lobby.currentPlayerIndex]?.name}'s Turn`}</h2>
-                                <p className="text-slate-400 mt-1 md:mt-2 font-mono text-[10px] md:text-xs tracking-[0.2em] uppercase opacity-70">{isMyTurn ? "Select an attack attribute" : "Waiting for opponent move..."}</p>
+                            <div className="absolute -top-[80px] md:-top-[100px] text-center bg-black/40 backdrop-blur-md px-6 py-3 md:px-8 md:py-4 rounded-3xl border border-white/10 shadow-2xl z-50 whitespace-nowrap">
+                                <h2 className={`text-2xl md:text-3xl font-black uppercase tracking-tighter ${isMyTurn ? 'text-transparent bg-clip-text bg-gradient-to-b from-white to-slate-400 drop-shadow-[0_0_25px_rgba(255,255,255,0.3)]' : 'text-slate-500'}`}>{isMyTurn ? "YOUR TURN" : `${lobby.players[lobby.currentPlayerIndex]?.name}'s Turn`}</h2>
+                                <p className="text-slate-400 mt-1 font-mono text-[9px] md:text-[10px] tracking-[0.2em] uppercase opacity-70">{isMyTurn ? "Select an attack attribute" : "Waiting for opponent move..."}</p>
                             </div>
 
                             {isMyTurn && myTopCard && (
@@ -209,7 +227,7 @@ export default function Game() {
                                             <button
                                                 key={attr}
                                                 onClick={() => chooseAttr(attr)}
-                                                className="px-4 py-2 md:px-6 md:py-3 rounded-xl bg-white/5 hover:bg-white/20 text-white font-bold tracking-wider text-xs md:text-sm uppercase transition-all duration-300 hover:scale-105 active:scale-95 border border-white/10 hover:border-white/30"
+                                                className="energy-charge px-4 py-2 md:px-6 md:py-3 rounded-xl text-white font-bold tracking-wider text-xs md:text-sm uppercase active:scale-95"
                                             >
                                                 {attr}
                                             </button>
@@ -222,7 +240,7 @@ export default function Game() {
                 </AnimatePresence>
 
                 {/* Center Table Arena (Horizontal Row) */}
-                <div className="absolute top-[100px] bottom-[120px] left-[60px] right-[60px] md:top-[160px] md:bottom-[200px] md:left-[240px] md:right-[240px] flex flex-col items-center justify-center z-20 pointer-events-none">
+                <div className="absolute top-[140px] bottom-[140px] left-[100px] right-[100px] md:top-[200px] md:bottom-[200px] md:left-[260px] md:right-[260px] flex flex-col items-center justify-center z-20 pointer-events-none">
                     {/* Battle Arena Cards */}
                     {tableCards.length > 0 && (
                         <div className={`flex flex-row flex-wrap justify-center items-center gap-2 sm:gap-4 md:gap-6 transition-all duration-1000 ease-in-out ${animState === 'SWEEPING' ? 'scale-50 opacity-0' : 'scale-100 opacity-100'}`}>

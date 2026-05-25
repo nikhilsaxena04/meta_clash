@@ -26,7 +26,8 @@ export default function PlayerSeat({ player, position, isTurn }) {
       <div className={`flex items-center justify-center gap-4 ${flexDir} transition-all duration-500 scale-[0.65] sm:scale-75 lg:scale-100 ${originClass}`}>
         
         {/* Profile Container */}
-        <div className={`p-3 rounded-2xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl w-32 sm:w-40 md:w-48 ${isTurn ? 'bg-indigo-900/60 border-indigo-400 shadow-[0_0_30px_rgba(99,102,241,0.6)] scale-105' : 'bg-black/60 border-white/10'}`}>
+        <div className={`p-3 rounded-2xl border transition-all duration-300 relative overflow-hidden backdrop-blur-xl w-32 sm:w-40 md:w-48 ${isTurn ? 'bg-indigo-900/80 border-indigo-400 aura-pulse scale-110 z-20' : 'bg-black/60 border-white/10'}`}>
+          {isTurn && <div className="absolute inset-0 bg-radial-gradient from-purple-500/30 to-transparent" />}
           <div className="flex justify-between items-center mb-2 relative z-10">
             <div className="font-bold flex items-center gap-1.5 text-xs md:text-sm text-white truncate">
                {player.name}

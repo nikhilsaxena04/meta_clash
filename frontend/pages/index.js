@@ -1,14 +1,26 @@
 // pages/index.js - PREMIUM GLASS LOBBY
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/router';
 import wsClient from '../lib/ws';
 import { motion, AnimatePresence } from 'framer-motion';
+import UniverseForge from '../components/UniverseForge';
 
 export default function Home() {
+  const router = useRouter();
   const [lobby, setLobby] = useState(null);
   const [name, setName] = useState('');
   const [theme, setTheme] = useState('One Piece');
   const [loadingGame, setLoadingGame] = useState(false);
   const [loadingFact, setLoadingFact] = useState('');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const containerRef = useRef(null);
+
+  const handleMouseMove = (e) => {
+    if (containerRef.current) {
+      containerRef.current.style.setProperty('--mouse-x', `${e.clientX}px`);
+      containerRef.current.style.setProperty('--mouse-y', `${e.clientY}px`);
+    }
+  };
 
   const facts = [
     "Rule #1: The highest attribute always wins the round. Choose your stats wisely.",
@@ -19,7 +31,6 @@ export default function Home() {
     "Rule #2: Winning rounds deals damage to your opponent. Drain their health to claim victory!"
   ];
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -37,7 +48,7 @@ export default function Home() {
       setLoadingFact(facts[Math.floor(Math.random() * facts.length)]);
       setLoadingGame(true);
       setTimeout(() => {
-        window.location.href = '/game';
+        router.push('/game');
       }, 10000);
     };
 
@@ -63,109 +74,132 @@ export default function Home() {
   const emptySlots = Array(4 - players.length).fill(null);
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 overflow-hidden font-sans">
+    <div 
+      ref={containerRef}
+      className="min-h-screen relative flex items-center justify-end p-4 md:pr-12 lg:pr-24 overflow-hidden font-sans"
+      onMouseMove={handleMouseMove}
+    >
       <AnimatePresence>
         {loadingGame && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md"
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-md overflow-hidden"
           >
-            <div className="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mb-8" />
-            <h2 className="text-3xl font-black text-white tracking-widest uppercase mb-4 animate-pulse">Summoning Cards...</h2>
-            <p className="text-indigo-300 font-mono text-center max-w-lg">{loadingFact}</p>
+            <div className="bg-arena pointer-events-none z-0" />
+            <div className="hex-grid pointer-events-none z-0" />
+            <div className="z-10 flex flex-col items-center justify-center w-full h-full">
+              <UniverseForge />
+              <h2 className="text-3xl font-black text-white tracking-widest uppercase mb-4 animate-pulse">Forging Universe...</h2>
+              <p className="text-indigo-300 font-mono text-center max-w-lg px-4">{loadingFact}</p>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <div className="bg-synthwave">
         <div className="synthwave-stars" />
+        <div className="shooting-stars">
+          <span /><span /><span /><span /><span />
+        </div>
         <div className="synthwave-sun" />
         <div className="synthwave-horizon" />
         <div className="synthwave-grid" />
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }} 
-        animate={{ opacity: 1, scale: 1 }} 
-        className="glass-panel w-full max-w-5xl rounded-3xl p-8 md:p-12 relative z-10 grid lg:grid-cols-2 gap-12 lg:gap-16 items-start"
+        layout
+        initial={{ opacity: 0, scale: 0.95, x: 20 }} 
+        animate={{ opacity: 1, scale: 1, x: 0 }} 
+        className="retro-panel p-6 md:p-10 relative z-10 flex flex-col md:flex-row gap-8 items-start"
       >
-        <div className="space-y-10">
-          <div className="flex flex-wrap justify-between items-start gap-6">
-            <div>
-              <h1 className="text-5xl lg:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-tight leading-tight">
+        <motion.div layout className="flex flex-col gap-8 w-full md:w-[420px] shrink-0">
+          <div className="flex flex-col gap-2 border-b border-indigo-500/20 pb-6">
+            <div className="flex justify-between items-start">
+              <h1 className="text-4xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 tracking-tight leading-none uppercase">
                 META<br/>CLASH
               </h1>
-              <p className="text-slate-400 text-lg mt-2 font-light tracking-wide">Generate. Battle. Conquer.</p>
+              <div className="flex flex-col items-end gap-2">
+                {isLoggedIn ? (
+                  <a href="/profile" className="px-3 py-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full font-bold tracking-widest text-[10px] hover:bg-indigo-500/30 transition-all uppercase">
+                    My Profile
+                  </a>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <a href="/login" className="px-3 py-1.5 bg-white/5 text-white border border-white/10 rounded-full font-bold tracking-widest text-[10px] hover:bg-white/10 transition-all uppercase text-center">
+                      Login
+                    </a>
+                    <a href="/register" className="px-3 py-1.5 bg-indigo-600 text-white rounded-full font-bold tracking-widest text-[10px] hover:bg-indigo-500 transition-all uppercase shadow-lg shadow-indigo-500/30 text-center">
+                      Register
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+            <p className="text-indigo-400/80 text-sm font-mono tracking-widest uppercase">Generate. Battle. Conquer.</p>
+          </div>
+
+          <div className="space-y-4">
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-indigo-300 uppercase tracking-widest ml-1">Your Identity</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Enter Nickname" className="w-full bg-black/40 border border-indigo-500/30 p-3 rounded-xl text-md font-medium text-white placeholder-slate-600 focus:outline-none focus:border-indigo-400 transition-colors" />
             </div>
             
-            <div className="flex flex-col items-end gap-2">
-              {isLoggedIn ? (
-                <a href="/profile" className="px-4 py-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 rounded-full font-bold tracking-widest text-xs hover:bg-indigo-500/30 transition-all uppercase">
-                  My Profile
-                </a>
-              ) : (
-                <div className="flex gap-2">
-                  <a href="/login" className="px-4 py-2 bg-white/5 text-white border border-white/10 rounded-full font-bold tracking-widest text-xs hover:bg-white/10 transition-all uppercase">
-                    Login
-                  </a>
-                  <a href="/register" className="px-4 py-2 bg-indigo-600 text-white rounded-full font-bold tracking-widest text-xs hover:bg-indigo-500 transition-all uppercase shadow-lg shadow-indigo-500/30">
-                    Register
-                  </a>
-                </div>
-              )}
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-purple-300 uppercase tracking-widest ml-1">Universe Theme</label>
+              <input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. One Piece, Naruto" className="w-full bg-black/40 border border-purple-500/30 p-3 rounded-xl text-md font-medium text-white placeholder-slate-600 focus:outline-none focus:border-purple-400 transition-colors" />
             </div>
           </div>
 
-          <div className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-indigo-300 uppercase tracking-widest ml-1">Your Identity</label>
-              <input value={name} onChange={e => setName(e.target.value)} placeholder="Enter Nickname" className="glass-input w-full p-4 rounded-xl text-lg font-medium placeholder-slate-600 focus:ring-2 focus:ring-indigo-500/50" />
-            </div>
-            
-            <div className="space-y-2">
-              <label className="text-xs font-bold text-purple-300 uppercase tracking-widest ml-1">Universe Theme</label>
-              <input value={theme} onChange={e => setTheme(e.target.value)} placeholder="e.g. One Piece, Naruto, Avengers, Harry Potter" className="glass-input w-full p-4 rounded-xl text-lg font-medium placeholder-slate-600 focus:ring-2 focus:ring-purple-500/50" />
-            </div>
-          </div>
-
-          <div className="pt-2 space-y-4">
-             <button onClick={create} disabled={!name || !theme || !!lobby?.id} className={`w-full p-5 rounded-xl font-bold text-xl tracking-widest uppercase transition-all duration-300 ${!name || !theme || !!lobby?.id ? 'opacity-30 bg-slate-800' : 'btn-primary hover:scale-[1.02]'}`}>Create New Lobby</button>
-             <div className="flex gap-3 h-14">
-               <input value={lobby?.id || ''} onChange={e => setLobbyId(e.target.value.toUpperCase())} placeholder="LOBBY CODE" className="glass-input flex-1 h-full px-4 rounded-xl text-center font-mono text-xl font-bold tracking-widest uppercase border-2 border-transparent focus:border-blue-500" />
-               <button onClick={join} className="h-full px-8 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-white rounded-xl text-sm font-bold tracking-wider transition-all">JOIN</button>
+          <div className="space-y-3">
+             <button onClick={create} disabled={!name || !theme || !!lobby?.id} className={`w-full p-4 rounded-xl font-bold text-lg tracking-widest uppercase transition-all duration-300 border ${!name || !theme || !!lobby?.id ? 'opacity-30 bg-slate-900 border-slate-700 text-slate-500' : 'bg-indigo-600/80 hover:bg-indigo-500 border-indigo-400 text-white shadow-[0_0_20px_rgba(79,70,229,0.4)]'}`}>Create Universe</button>
+             <div className="flex gap-2 h-12">
+               <input value={lobby?.id || ''} onChange={e => setLobbyId(e.target.value.toUpperCase())} placeholder="LOBBY CODE" className="w-2/3 bg-black/60 px-3 rounded-xl text-center font-mono text-lg font-bold tracking-widest uppercase text-white border border-slate-700 focus:outline-none focus:border-blue-500" />
+               <button onClick={join} className="w-1/3 bg-slate-800 hover:bg-slate-700 border border-slate-600 hover:border-slate-500 text-white rounded-xl text-xs font-bold tracking-wider transition-all uppercase">JOIN</button>
              </div>
           </div>
-          
+        </motion.div>
+        
+        <AnimatePresence>
           {lobby?.id && (
-            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-5 rounded-2xl bg-gradient-to-r from-emerald-900/40 to-emerald-800/20 border border-emerald-500/30 flex justify-between items-center mt-4 backdrop-blur-md">
-               <div><div className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest mb-1">Status: Active</div><div className="text-3xl font-mono font-bold tracking-widest text-white">{lobby.id}</div></div>
-               <div className="flex gap-3">
-                 <button onClick={addBot} className="px-4 py-3 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-200 rounded-lg text-xs font-bold border border-yellow-500/30 uppercase tracking-wide transition-colors">+ Bot</button>
-                 <button onClick={start} disabled={lobby.players.length < 2} className="px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-lg font-bold shadow-lg shadow-red-900/40 uppercase tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed">Start</button>
+            <motion.div 
+              layout
+              initial={{ opacity: 0, width: 0, paddingLeft: 0, marginLeft: 0 }} 
+              animate={{ opacity: 1, width: 320, paddingLeft: 32, marginLeft: 0 }} 
+              exit={{ opacity: 0, width: 0, paddingLeft: 0, marginLeft: 0 }}
+              className="flex flex-col gap-3 border-l border-emerald-500/30 overflow-hidden shrink-0 h-full min-h-[400px]"
+            >
+               <div className="flex justify-between items-center mb-2">
+                 <div>
+                   <div className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest mb-0.5">Active Session</div>
+                   <div className="text-xl font-mono font-bold tracking-widest text-white">{lobby.id}</div>
+                 </div>
+                 <span className="text-[10px] font-mono bg-black/40 px-2 py-1 rounded text-emerald-300 border border-emerald-900">{players.length} / 4 Players</span>
+               </div>
+               
+               <div className="flex flex-col gap-2 flex-1">
+                 {players.map((p, i) => (
+                   <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-black/40 border border-white/5">
+                     <div className="w-8 h-8 rounded bg-indigo-900/50 flex items-center justify-center font-bold text-sm text-indigo-300 border border-indigo-700/50">{p.name[0]}</div>
+                     <div className="font-mono text-sm text-white truncate">{p.name} {p.isBot && <span className="text-[9px] bg-yellow-500/20 text-yellow-300 px-1.5 py-0.5 ml-2 rounded uppercase tracking-wider">BOT</span>}</div>
+                   </div>
+                 ))}
+                 {emptySlots.map((_, i) => (
+                   <div key={i} className="flex items-center gap-3 p-2 rounded-lg border border-dashed border-white/10 opacity-30">
+                     <div className="w-8 h-8 rounded border border-dashed border-slate-600 flex items-center justify-center text-xs">+</div>
+                     <div className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Awaiting Player</div>
+                   </div>
+                 ))}
+               </div>
+
+               <div className="flex flex-col gap-2 mt-4">
+                 <button onClick={addBot} className="w-full py-3 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-200 rounded-lg text-[10px] font-bold border border-yellow-500/30 uppercase tracking-widest transition-colors">+ Add Bot</button>
+                 <button onClick={start} disabled={lobby.players.length < 2} className="w-full py-4 bg-red-600/80 hover:bg-red-500 text-white rounded-lg text-xs font-bold border border-red-400 uppercase tracking-widest transition-all disabled:opacity-30 disabled:cursor-not-allowed shadow-[0_0_15px_rgba(220,38,38,0.3)]">Start Match</button>
                </div>
             </motion.div>
           )}
-        </div>
-
-        <div className="h-full min-h-[500px] bg-black/40 rounded-3xl p-8 border border-white/5 relative overflow-hidden backdrop-blur-sm flex flex-col">
-          <div className="flex justify-between items-end mb-8 border-b border-white/5 pb-4">
-            <div><h3 className="font-bold text-2xl text-white">Lobby List</h3></div>
-            <span className="text-sm font-mono bg-white/5 px-3 py-1 rounded-full text-indigo-300 border border-white/10">{players.length} / 4</span>
-          </div>
-          <div className="space-y-4 flex-1">
-            {players.map((p, i) => (
-              <div key={i} className="flex items-center gap-5 p-4 rounded-2xl bg-white/5 border border-white/5">
-                <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-xl shadow-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white">{p.name[0]}</div>
-                <div className="font-bold text-white text-lg">{p.name} {p.isBot && <span className="text-[10px] bg-yellow-500/20 text-yellow-300 px-2 py-0.5 rounded">BOT</span>}</div>
-              </div>
-            ))}
-            {emptySlots.map((_, i) => (
-              <div key={i} className="flex items-center gap-5 p-4 rounded-2xl border-2 border-dashed border-white/5 opacity-40"><div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">+</div><div className="text-sm font-medium text-slate-500 uppercase tracking-wider">Open Slot</div></div>
-            ))}
-          </div>
-        </div>
+        </AnimatePresence>
       </motion.div>
     </div>
   );

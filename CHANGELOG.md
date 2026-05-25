@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Comprehensive Gitignore**: Expanded `.gitignore` to properly exclude frontend build artifacts (`.next/`, `out/`), backend Go binaries, local `.env` files, OS specific files, and agent tooling directories (`.gemini/`, `.cursor/`, etc.).
 
 ### Changed
+- **Lobby UI Redesign**: Replaced the generic purple gradient and floating orb background with a dynamic, pure-CSS retro/synthwave aesthetic featuring an animated 3D grid, glowing horizon, and starry deep space to match the game's immersive, multiversal theme (`frontend/pages/index.js` and `frontend/styles/globals.css`).
 - **Architecture Splitting**: Officially completed the migration away from a monolithic Render deployment. The architecture is now strictly split:
   - **Frontend**: Hosted purely statically on Vercel Edge Network (100% static HTML/JS, zero serverless functions).
   - **Backend**: Hosted as a persistent Go Docker container on Railway to entirely eliminate WebSocket cold-start latency.
