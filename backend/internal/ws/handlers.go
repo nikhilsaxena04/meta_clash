@@ -74,8 +74,9 @@ func (h *Handlers) handleCreateLobby(c *Client, msg SocketMessage) {
 	}
 
 	host := models.Player{
-		ID:   models.PlayerID(playerID),
-		Name: req.Name,
+		ID:     models.PlayerID(playerID),
+		Name:   req.Name,
+		UserID: c.UserID,
 	}
 
 	l, err := h.Manager.CreateLobby(req.Theme, host)
@@ -103,8 +104,9 @@ func (h *Handlers) handleJoinLobby(c *Client, msg SocketMessage) {
 	}
 
 	p := models.Player{
-		ID:   models.PlayerID(playerID),
-		Name: req.Name,
+		ID:     models.PlayerID(playerID),
+		Name:   req.Name,
+		UserID: c.UserID,
 	}
 
 	l, err := h.Manager.JoinLobby(req.LobbyID, p)

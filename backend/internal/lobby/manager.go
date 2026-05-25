@@ -194,8 +194,8 @@ func (m *Manager) PlayRound(code string, playerID models.PlayerID, attr string) 
 
 	if lobby.State == models.LobbyStateFinished && m.userRepo != nil {
 		winnerID := ""
-		if lobby.Winner != nil && !lobby.Winner.IsBot {
-			winnerID = string(lobby.Winner.ID)
+		if lobby.Winner != nil && !lobby.Winner.IsBot && lobby.Winner.UserID != "" {
+			winnerID = lobby.Winner.UserID
 		}
 		if !isValidUUID(winnerID) {
 			winnerID = ""
@@ -216,8 +216,8 @@ func (m *Manager) PlayRound(code string, playerID models.PlayerID, attr string) 
 
 		var mPlayers []models.MatchPlayer
 		for _, p := range lobby.Players {
-			userID := string(p.ID)
-			if p.IsBot || !isValidUUID(userID) {
+			userID := p.UserID
+			if p.IsBot || userID == "" || !isValidUUID(userID) {
 				userID = ""
 			}
 			mPlayers = append(mPlayers, models.MatchPlayer{

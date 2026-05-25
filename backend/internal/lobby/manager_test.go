@@ -184,7 +184,7 @@ func TestManager_PlayRound_MatchHistory(t *testing.T) {
 	mgr := NewManager(store, gen, engine, repo)
 
 	hostID := "00000000-0000-0000-0000-000000000001"
-	host := models.Player{ID: models.PlayerID(hostID), Name: "Host"}
+	host := models.Player{ID: models.PlayerID(hostID), Name: "Host", UserID: hostID}
 	lobby, _ := mgr.CreateLobby("one piece", host)
 	_, _ = mgr.AddBot(lobby.ID)
 

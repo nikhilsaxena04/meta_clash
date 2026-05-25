@@ -9,7 +9,7 @@ type Player struct {
 	Name     string   `json:"name"`
 	IsBot    bool     `json:"isBot"`
 	Hand     Deck     `json:"hand"`
-	Score    int      `json:"totalWins"` // Round wins accumulated during the game
+	Score    int      `json:"score"` // Round wins accumulated during the game
 
 	// SocketID tracks the WebSocket connection for human players.
 	// Empty for bots.
